@@ -6,17 +6,17 @@ import torch.nn.functional as F
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, kernel_size):
         super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, in_channels,
-                               kernel_size=kernel_size, padding=1)
-        self.conv2 = nn.Conv2d(in_channels, in_channels,
-                               kernel_size=kernel_size, padding=1)
-        self.instance_norm1 = nn.InstanceNorm2d(in_channels)
-        self.instance_norm2 = nn.InstanceNorm2d(in_channels)
 
-    def forward(self, x):
-        identity = x
-        out = F.relu(self.instance_norm1(self.conv1(x)))
-        out = self.instance_norm2(self.conv2(out))
+        self.block = nn.Sequential(
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=1),
+            nn.InstanceNorm2d(in_channels),
+            nn.ReLU(True),
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=1),
+            nn.InstanceNorm2d(in_channels),
+        )
+
+    def forward(self, identity):
+        out = self.block(identity)
         out += identity
         return F.relu(out)
 
