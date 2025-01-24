@@ -42,7 +42,7 @@ class DPEDGenerator(nn.Module):
             nn.ReLU(True),
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.ReLU(True),
-            nn.Conv2d(64, 3, kernel_size=9, padding=1)
+            nn.Conv2d(64, 3, kernel_size=9, padding=4)
         )
 
         self._initialize_weights()
