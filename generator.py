@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, kernel_size):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
 
         self.block = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=1),
@@ -42,9 +42,17 @@ class DPEDGenerator(nn.Module):
             nn.ReLU(True),
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.ReLU(True),
-            nn.Conv2d(64, 3, kernel_size=3, padding=1)
+            nn.Conv2d(64, 3, kernel_size=9, padding=1)
         )
 
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.trunc_normal_(m.weight, std=0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.01)
 
     def forward(self, input_image):
         resnet_output = self.resnet(input_image)
