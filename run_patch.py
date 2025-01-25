@@ -20,6 +20,6 @@ load_model(model, args.model)
 
 img = pil_to_tensor(Image.open(args.input_image)).float() / 255 - 0.5
 
-out_img = model(img)
+out_img = (model(img) + 0.5) * 255
 
 out_img = to_pil_image(out_img).save(args.output_image)
