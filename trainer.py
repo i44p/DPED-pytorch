@@ -69,6 +69,7 @@ class Trainer:
         save_path = pathlib.Path(path).resolve()
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_model(self.model, save_path)
+        print()
         print(f'Model saved: {save_path}!')
 
     def train(self):
