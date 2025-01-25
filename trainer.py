@@ -127,7 +127,7 @@ class Trainer:
                         do_train = False
                         break
 
-            if checkpoint_epoch and self.current_epoch > 0:
+            if checkpoint_epoch:
                 if self.current_epoch % checkpoint_epoch == 0:
                     self.checkpoint()
 
