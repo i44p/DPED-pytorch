@@ -1,0 +1,22 @@
+trainer:
+  load_from:
+  save_path: checkpoints/test.safetensors
+  checkpoint_path: checkpoints/
+  checkpoint_epoch: 1        # checkpoint every n epochs
+  checkpoint_step: 500       # 0: don't checkpoint
+  end_step: 10
+  end_epoch: 1
+
+hyperparameters:
+  optimizer:
+    name: torch.optim.AdamW
+    args:
+      lr: 3e-4
+  batch_size: 20
+
+dataset:
+  module: dataset_loader.DPEDPatchDataset
+  args:
+    path: dataset/dped/blackberry/training_data
+    input_label: blackberry
+    target_label: canon
