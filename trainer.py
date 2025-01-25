@@ -16,6 +16,9 @@ def import_class(name=None):
 
 class Trainer:
     def __init__(self, config: OmegaConf):
+
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
         self.config = config
         self.model = self.prepare_models()
 
@@ -24,7 +27,7 @@ class Trainer:
         self.dataloader = self.prepare_dataloader()
 
     def prepare_models(self):
-        model = DPEDGenerator()
+        model = DPEDGenerator().to(self.device)
         trainer = self.config.trainer
         if trainer.get('resume_path'):
             load_model(model, traner.resume_path)
@@ -49,7 +52,7 @@ class Trainer:
     def prepare_dataloader(self):
         dataset = import_class(self.config.dataset.module)(
             **self.config.dataset.args,
-            config=self.config
+            config=self.config,
         )
         return dataset.get_dataloader()
 
@@ -97,8 +100,8 @@ class Trainer:
                 
                 ###
 
-                model_input = batch[0]
-                target = batch[1]
+                model_input = batch[0].to(self.device)
+                target = batch[1].to(self.device)
 
                 model_output = self.model(model_input)
 
