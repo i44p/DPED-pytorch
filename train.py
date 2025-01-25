@@ -14,8 +14,9 @@ def get_config():
 if __name__ == '__main__':
     config = get_config()
 
+import os
 import torch
-torch.set_num_threads(20)
+torch.set_num_threads(os.cpu_count())
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
