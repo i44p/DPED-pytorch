@@ -100,8 +100,8 @@ class Trainer:
                 
                 ###
 
-                model_input = batch[0].to(self.device).float()
-                target = batch[1].to(self.device).float()
+                model_input = batch[0].to(self.device)
+                target = batch[1].to(self.device)
 
                 model_output = self.model(model_input)
 
