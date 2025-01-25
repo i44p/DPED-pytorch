@@ -130,7 +130,6 @@ class Trainer:
             if checkpoint_epoch and self.current_epoch > 0:
                 if self.current_epoch % checkpoint_epoch == 0:
                     self.checkpoint()
-                    print(checkpoint_epoch, self.current_epoch, checkpoint_step)
 
             if self.end_epoch:
                 if self.current_epoch >= self.end_epoch:
