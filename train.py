@@ -17,6 +17,9 @@ if __name__ == '__main__':
 import torch
 torch.set_num_threads(20)
 
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
 from trainer import Trainer
 
 
