@@ -32,6 +32,8 @@ class DPEDPatchDataset(Dataset):
             self,
             batch_size = self.config.hyperparameters.batch_size,
             shuffle=True,
+            num_workers=8,
+            prefetch_factor=5,
             pin_memory=True,
         )
         return dataloader
