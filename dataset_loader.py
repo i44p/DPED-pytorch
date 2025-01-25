@@ -22,8 +22,8 @@ class DPEDPatchDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        input_img = pil_to_tensor(Image.open(self.path / self.input_label / f"{idx}.jpg")).float() / 255 - 0.5
-        target_img = pil_to_tensor(Image.open(self.path / self.target_label / f"{idx}.jpg")).float() / 255 - 0.5
+        input_img = pil_to_tensor(Image.open(self.path / self.input_label / f"{idx}.jpg")).half() / 255 - 0.5
+        target_img = pil_to_tensor(Image.open(self.path / self.target_label / f"{idx}.jpg")).half() / 255 - 0.5
         
         return input_img, target_img
 
@@ -31,7 +31,8 @@ class DPEDPatchDataset(Dataset):
         dataloader = DataLoader(
             self,
             batch_size = self.config.hyperparameters.batch_size,
-            shuffle=True
+            shuffle=True,
+            pin_memory=True,
         )
         return dataloader
 
