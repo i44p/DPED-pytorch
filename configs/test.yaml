@@ -19,6 +19,8 @@ criterion:
     w_texture: 0.4
     w_content: 1.0
     w_total_variation: 400.0
+    blur_sigma: 3
+    blur_kernel_size: 21
 
 hyperparameters:
   optimizer:

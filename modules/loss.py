@@ -1,8 +1,6 @@
 import torch
 from torchvision.transforms import GaussianBlur
 
-# todo: implement loss as defined in DPED paper
-
 
 class DPEDLoss(torch.nn.Module):
     def __init__(
@@ -10,7 +8,9 @@ class DPEDLoss(torch.nn.Module):
         w_color,
         w_texture,
         w_content,
-        w_total_variation
+        w_total_variation,
+        blur_sigma,
+        blur_kernel_size,
     ):
         super().__init__()
 
@@ -18,7 +18,9 @@ class DPEDLoss(torch.nn.Module):
         self.w_texture = w_texture
         self.w_content = w_content
         self.w_total_variation = w_total_variation
-        
+
+        self.blur = GaussianBlur(kernel_size=blur_kernel_size, sigma=blur_sigma)
+
         self.mse_loss = torch.nn.MSELoss(reduction='none')
 
     def forward(self, output, target):
@@ -32,11 +34,10 @@ class DPEDLoss(torch.nn.Module):
             self.w_content * content_loss + \
             self.w_total_variation * total_variation_loss
 
-        return self.mse_loss(output, target)
+        return loss
 
     def color_loss(self, output, target):
-        # (3.1.1) color loss
-        return torch.zeros_like(output)
+        return self.mse_loss(self.blur(output), self.blur(target))
 
     def texture_loss(self, output, target):
         # (3.1.2) texture loss
