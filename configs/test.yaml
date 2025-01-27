@@ -7,6 +7,11 @@ trainer:
   end_step: 10
   end_epoch: 1
 
+model:
+  image_normalization:
+    min: 0
+    max: 1
+
 criterion:
   module: loss.DPEDLoss
   args: {}
@@ -19,7 +24,7 @@ hyperparameters:
   batch_size: 20
 
 dataset:
-  module: dataset_loader.DPEDPatchDataset
+  module: data.patches.DPEDPatchDataset
   args:
     path: dataset/dped/blackberry/training_data
     input_label: blackberry

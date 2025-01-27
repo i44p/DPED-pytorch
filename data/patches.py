@@ -1,10 +1,9 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms.functional import pil_to_tensor
 
 from pathlib import Path
 
-from PIL import Image
+from .utils import load_image
 
 
 class DPEDPatchDataset(Dataset):
@@ -13,6 +12,9 @@ class DPEDPatchDataset(Dataset):
         self.input_label = input_label
         self.target_label = target_label
         self.config = config
+        
+        norms = config.model.get("image_normalization", {"min": 0, "max": 1})
+        self.min_, self.max_ = float(norms["min"]), float(norms["max"])
 
         assert self.path.is_dir()
 
@@ -22,8 +24,8 @@ class DPEDPatchDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        input_img = pil_to_tensor(Image.open(self.path / self.input_label / f"{idx}.jpg")).float() / 255 - 0.5
-        target_img = pil_to_tensor(Image.open(self.path / self.target_label / f"{idx}.jpg")).float() / 255 - 0.5
+        input_img = load_image(self.path / self.input_label / f"{idx}.jpg", self.min_, self.max_)
+        target_img = load_image(self.path / self.target_label / f"{idx}.jpg", self.min_, self.max_)
         
         return input_img, target_img
 
@@ -33,7 +35,7 @@ class DPEDPatchDataset(Dataset):
             batch_size = self.config.hyperparameters.batch_size,
             shuffle=True,
             num_workers=8,
-            prefetch_factor=5,
+            prefetch_factor=3,
             pin_memory=True,
         )
         return dataloader
