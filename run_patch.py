@@ -19,8 +19,8 @@ args = parser.parse_args()
 model = DPEDGenerator()
 load_model(model, args.model)
 
-img = data.utils.load_image(args.input_image).unsqueeze(0)
+img = data.utils.load_image(args.input_image, min_=0).unsqueeze(0)
 
 out_img = model(img).squeeze()
 
-data.utils.save_image(out_img, args.output_image)
+data.utils.save_image(out_img, args.output_image, min_=0)
