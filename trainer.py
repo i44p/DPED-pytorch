@@ -4,7 +4,6 @@ from omegaconf import OmegaConf
 from tqdm import tqdm, trange
 from safetensors.torch import save_model, load_model
 from modules import DPEDGenerator
-from loss import DPEDLoss
 
 
 def import_class(name=None):
