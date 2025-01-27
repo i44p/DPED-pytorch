@@ -27,4 +27,4 @@ def pil_to_tensor(image: Image.Image) -> torch.Tensor:
 
 
 def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
-    return Image.fromarray(tensor.numpy().round().astype(np.uint8))
+    return Image.fromarray(tensor.detach().permute(1, 2, 0).numpy().round().astype(np.uint8))
