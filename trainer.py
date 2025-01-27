@@ -74,7 +74,9 @@ class Trainer:
 
     def train(self):
 
-        criterion = DPEDLoss()
+        criterion = import_class(self.config.criterion.get('module', torch.nn.MSELoss))(
+            **self.config.criterion.get("args", {})
+        )
 
         self.end_epoch = self.config.trainer.get("end_epoch", 1)
         self.end_step = self.config.trainer.get("end_step", 0)

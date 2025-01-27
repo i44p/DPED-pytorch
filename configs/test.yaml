@@ -7,6 +7,10 @@ trainer:
   end_step: 10
   end_epoch: 1
 
+criterion:
+  module: loss.DPEDLoss
+  args: {}
+
 hyperparameters:
   optimizer:
     name: torch.optim.AdamW
