@@ -75,7 +75,7 @@ class Trainer:
     def train(self):
 
         criterion = import_class(self.config.criterion.get('module', torch.nn.MSELoss))(
-            **self.config.criterion.get("args", {})
+            **self.config.criterion.get("args", {'reduction': 'none'})
         )
 
         self.end_epoch = self.config.trainer.get("end_epoch", 1)
