@@ -24,10 +24,10 @@ class DPEDPatchDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        input_img = load_image(self.path / self.input_label / f"{idx}.jpg", self.min_, self.max_)
-        target_img = load_image(self.path / self.target_label / f"{idx}.jpg", self.min_, self.max_)
+        input_patch = load_image(self.path / self.input_label / f"{idx}.jpg", self.min_, self.max_)
+        target_patch = load_image(self.path / self.target_label / f"{idx}.jpg", self.min_, self.max_)
         
-        return input_img, target_img
+        return input_patch, target_patch
 
     def get_dataloader(self):
         dataloader = DataLoader(
