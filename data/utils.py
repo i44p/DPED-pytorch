@@ -28,9 +28,3 @@ def pil_to_tensor(image: Image.Image) -> torch.Tensor:
 
 def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
     return Image.fromarray(tensor.numpy().round().astype(np.uint8))
-
-
-if __name__ == '__main__':
-    img = load_image("test2.png")
-    input(img.shape)
-    save_image(img, "test.png")
