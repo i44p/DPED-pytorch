@@ -14,7 +14,11 @@ model:
 
 criterion:
   module: modules.loss.DPEDLoss
-  args: {}
+  args:
+    w_color: 0.1
+    w_texture: 0.4
+    w_content: 1.0
+    w_total_variation: 400.0
 
 hyperparameters:
   optimizer:
