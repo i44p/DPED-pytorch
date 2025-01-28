@@ -47,7 +47,6 @@ class DPEDModel(nn.Module):
     
     def _prepare_criterion(self):
         return import_class(self.config.model.generator.criterion.get('module', torch.nn.MSELoss))(
-                self,
                 **self.config.model.generator.criterion.get("args", {'reduction': 'none'})
             )
     
@@ -98,7 +97,7 @@ class DPEDModel(nn.Module):
     
     def _generator_pass(self, model_input, target):
         output = self.generator(model_input)
-        loss = self.criterion(output, target).mean()
+        loss = self.criterion(output, target, self.discriminator).mean()
 
         loss.backward()
         self.optimizer.step()

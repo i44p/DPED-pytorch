@@ -5,7 +5,6 @@ from functools import lru_cache
 class DPEDLoss(torch.nn.Module):
     def __init__(
         self,
-        dped,
         w_color,
         w_texture,
         w_content,
@@ -15,7 +14,6 @@ class DPEDLoss(torch.nn.Module):
     ):
         super().__init__()
 
-        self.dped = dped
 
         self.w_color = w_color
         self.w_texture = w_texture
@@ -28,9 +26,9 @@ class DPEDLoss(torch.nn.Module):
         self.mse_loss = torch.nn.MSELoss(reduction='none')
         self.cross_entropy = torch.nn.CrossEntropyLoss(reduction='none')
 
-    def forward(self, output, target):
+    def forward(self, output, target, discriminator):
         color_loss = self.color_loss(output, target)
-        texture_loss = self.texture_loss(output, target)
+        texture_loss = self.texture_loss(output, target, discriminator)
         content_loss = self.content_loss(output, target)
         total_variation_loss = self.variation_loss(output, target)
 
@@ -45,10 +43,10 @@ class DPEDLoss(torch.nn.Module):
         # (3.1.1) texture loss
         return self.mse_loss(self.blur(output), self.blur(target))
 
-    def texture_loss(self, output, target):
+    def texture_loss(self, output, target, discriminator):
         # (3.1.2) texture loss
         
-        discriminator_output = self.dped.discriminator(self.grayscale(output))
+        discriminator_output = discriminator(self.grayscale(output))
         discriminator_real_confidence = discriminator_output[:,0]
         discriminator_target = torch.ones([output.shape[0]])
 
