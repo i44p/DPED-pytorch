@@ -74,7 +74,7 @@ class DPEDModel(nn.Module):
 
         batch = target.shape[0]
 
-        target_prob = torch.randint(0,2,[batch, 1]).float()
+        target_prob = torch.randint(0,2,[batch, 1], device=self.device).float()
 
         output = self.generator(model_input)
         grayscale_output = self.grayscale(output)
