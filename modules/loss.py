@@ -1,6 +1,6 @@
 import torch
 from torchvision.transforms import GaussianBlur
-
+from functools import lru_cache
 
 class DPEDLoss(torch.nn.Module):
     def __init__(
@@ -37,6 +37,7 @@ class DPEDLoss(torch.nn.Module):
         return loss
 
     def color_loss(self, output, target):
+        # (3.1.1) texture loss
         return self.mse_loss(self.blur(output), self.blur(target))
 
     def texture_loss(self, output, target):
@@ -49,4 +50,12 @@ class DPEDLoss(torch.nn.Module):
 
     def variation_loss(self, output, target):
         # (3.1.4) total variation loss
-        return torch.zeros_like(output)
+        batch, channels, height, width = output.shape
+
+        tv_y_size = (height - 1) * width * channels
+        tv_x_size = height * (width - 1) * channels
+
+        x_tv = torch.sum((output[:,:,1:,:] - output[:,:,:height-1,:])**2)
+        y_tv = torch.sum((output[:,:,:,1:] - output[:,:,:,:width-1])**2)
+
+        return (x_tv/tv_x_size + y_tv/tv_y_size)
