@@ -11,22 +11,21 @@ model:
   module: modules.dped.DPEDModel
   generator:
     module: modules.generator.DPEDGenerator
+    criterion:
+      module: modules.loss.DPEDLoss
+      args:
+        w_color: 0.1
+        w_texture: 0.4
+        w_content: 1.0
+        w_total_variation: 400.0
+        blur_sigma: 3
+        blur_kernel_size: 21
   discriminator:
     module: modules.discriminator.DPEDDiscriminator
   
   image_normalization:
     min: 0
     max: 1
-
-criterion:
-  module: modules.loss.DPEDLoss
-  args:
-    w_color: 0.1
-    w_texture: 0.4
-    w_content: 1.0
-    w_total_variation: 400.0
-    blur_sigma: 3
-    blur_kernel_size: 21
 
 hyperparameters:
   optimizer:

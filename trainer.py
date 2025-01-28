@@ -14,17 +14,8 @@ class Trainer:
         self.config = config
 
         self.model = import_class(self.config.model.module)(self.config, self.device)
-
-        self.optimizer = self.prepare_optimizer()
+        
         self.dataloader = self.prepare_dataloader()
-
-    def prepare_optimizer(self):
-        params_to_optim = self.model.get_parameters_to_optimize()
-
-        return import_class(self.config.hyperparameters.optimizer.name)(
-            params_to_optim,
-            **self.config.hyperparameters.optimizer.args
-        )
 
     def prepare_dataloader(self):
         dataset = import_class(self.config.dataset.module)(
@@ -77,18 +68,14 @@ class Trainer:
 
                 model_input = batch[0].to(self.device)
                 target = batch[1].to(self.device)
+                
+                losses = self.model(model_input, target)
 
-                loss = self.model(model_input, target)
-
-                loss = loss.mean()
-
-                loss.backward()
-                self.optimizer.step()
-                self.optimizer.zero_grad(set_to_none=True)
+                losses = [round(loss, 5) for loss in losses]
 
                 ###
 
-                stat_str = f"loss: {loss:.4f}"
+                stat_str = f"losses: {losses}"
                 step_bar.set_postfix_str(stat_str)
 
                 if checkpoint_step and self.global_step > 0:
