@@ -16,7 +16,7 @@ class DPEDLoss(torch.nn.Module):
         super().__init__()
 
         self.dped = dped
-        
+
         self.w_color = w_color
         self.w_texture = w_texture
         self.w_content = w_content
@@ -26,6 +26,7 @@ class DPEDLoss(torch.nn.Module):
         self.grayscale = Grayscale()
 
         self.mse_loss = torch.nn.MSELoss(reduction='none')
+        self.cross_entropy = torch.nn.CrossEntropyLoss(reduction='none')
 
     def forward(self, output, target):
         color_loss = self.color_loss(output, target)
@@ -47,7 +48,22 @@ class DPEDLoss(torch.nn.Module):
     def texture_loss(self, output, target):
         # (3.1.2) texture loss
 
-        return torch.zeros_like(output)
+        # branchless condition, per-image loss
+        # target_prob = torch.randint(0,2,[output.shape[0], 1]).float()
+        # discriminator_input = self.grayscale(output) * (1 - target_prob.view([batch, 1, 1, 1])) + \
+        #                       self.grayscale(target) * target_prob.view([batch, 1, 1, 1])
+        # discriminator_target = torch.cat([target_prob, 1-target_prob], 1)
+        
+        discriminator_output = self.dped.discriminator(self.grayscale(output))
+        
+        discriminator_real_confidence = discriminator_output[:,0]
+
+        discriminator_target = torch.ones([output.shape[0]])
+
+        loss_texture = self.cross_entropy(discriminator_real_confidence, discriminator_target)
+        # loss_discriminator = -loss_texture
+
+        return loss_texture
 
     def content_loss(self, output, target):
         # (3.1.3) content loss
