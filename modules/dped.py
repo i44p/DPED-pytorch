@@ -70,33 +70,34 @@ class DPEDModel(nn.Module):
         return losses_mean
     
     def _discriminator_pass(self, model_input, target):
-        # branchless condition, per-image loss
+        with torch.no_grad():
+            fake = self.grayscale(self.generator(model_input))
+            real = self.grayscale(target)
 
+        # branchless fake/real condition, mix per-image values
         batch = target.shape[0]
-
-        target_prob = torch.randint(0,2,[batch, 1], device=self.device).float()
-
-        output = self.generator(model_input)
-        grayscale_output = self.grayscale(output)
-
-        discriminator_input = grayscale_output * (1 - target_prob.view([batch, 1, 1, 1])) + \
-                              self.grayscale(target) * target_prob.view([batch, 1, 1, 1])
+        target_prob = torch.randint(0, 2, [batch, 1], device=self.device).float()
+        discriminator_input = fake * (1 - target_prob.view([batch, 1, 1, 1])) + \
+                              real * target_prob.view([batch, 1, 1, 1])
+                              
         discriminator_target = torch.cat([target_prob, 1-target_prob], 1)
 
         discriminator_output = self.discriminator(discriminator_input)
 
-        loss_discriminator = self.cross_entropy(discriminator_output, discriminator_target).mean()
+        loss_discriminator = self.cross_entropy(discriminator_output, discriminator_target)
         loss = loss_discriminator.mean()
 
-        loss_discriminator.backward()
+        loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad(set_to_none=True)
 
-        return loss_discriminator.item()
+        return loss.item()
     
     def _generator_pass(self, model_input, target):
         output = self.generator(model_input)
-        loss = self.criterion(output, target, self.discriminator).mean()
+        generator_loss = self.criterion(output, target, self.discriminator)
+        
+        loss = generator_loss.mean()
 
         loss.backward()
         self.optimizer.step()
