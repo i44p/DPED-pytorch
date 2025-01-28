@@ -64,8 +64,8 @@ class DPEDModel(nn.Module):
         discriminator_loss = self._discriminator_pass(model_input, target)
         losses_mean.append(discriminator_loss)
 
-        generator_loss = self._generator_pass(model_input, target)
-        losses_mean.append(generator_loss)
+        # generator_loss = self._generator_pass(model_input, target)
+        # losses_mean.append(generator_loss)
 
         return losses_mean
     
@@ -86,7 +86,7 @@ class DPEDModel(nn.Module):
         discriminator_output = self.discriminator(grayscale_output)
         discriminator_real_confidence = discriminator_output[:,0]
 
-        loss_discriminator = -self.cross_entropy(discriminator_real_confidence, discriminator_target)
+        loss_discriminator = self.cross_entropy(discriminator_real_confidence, discriminator_target)
         loss = loss_discriminator.mean()
 
         loss_discriminator.backward()

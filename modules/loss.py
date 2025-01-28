@@ -50,7 +50,8 @@ class DPEDLoss(torch.nn.Module):
         discriminator_real_confidence = discriminator_output[:,0]
         discriminator_target = torch.ones([output.shape[0]])
 
-        loss_texture = self.cross_entropy(discriminator_real_confidence, discriminator_target)
+        loss_discrim = self.cross_entropy(discriminator_real_confidence, discriminator_target)
+        loss_texture = -loss_discrim
 
         return loss_texture
 
