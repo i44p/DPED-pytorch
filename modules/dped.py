@@ -18,19 +18,17 @@ class DPEDModel(nn.Module):
         
     def _prepare_models(self):
         params_to_optim = []
-
-        generator = import_class(self.config.model.generator.module)().to(self.device)
-        trainer = self.config.trainer
-        if trainer.get('resume_path'):
-            load_model(generator, traner.resume_path)
         
+        generator = import_class(self.config.model.generator.module)().to(self.device)
         params_to_optim.append(
                 {
                     "params": list(generator.parameters())
                 }
             )
-
         generator.train(True)
+    
+        if self.config.trainer.get('resume_path'):
+            load_model(self, self.config.trainer.resume_path)
 
         return params_to_optim, generator
     
