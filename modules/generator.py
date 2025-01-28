@@ -8,10 +8,10 @@ class ResidualBlock(nn.Module):
         super().__init__()
 
         self.block = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=1),
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size // 2),
             nn.InstanceNorm2d(in_channels),
             nn.ReLU(True),
-            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=1),
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size // 2),
             nn.InstanceNorm2d(in_channels),
         )
 

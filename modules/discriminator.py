@@ -12,14 +12,18 @@ class LeakyReLU(nn.Module):
 
 
 class LeakyNormConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, batch_nn=True):
         super().__init__()
 
-        self.model = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=1),
+        layers = [
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=kernel_size // 2),
             LeakyReLU(),
-            nn.InstanceNorm2d(in_channels)
-        )
+        ]
+
+        if batch_nn:
+            layers.append(nn.InstanceNorm2d(out_channels))
+
+        self.model = nn.Sequential(*layers)
 
     def forward(self, x):
         return self.model(x)
@@ -30,15 +34,14 @@ class DPEDDiscriminator(nn.Module):
         super().__init__()
 
         self.model = nn.Sequential(
-            nn.Conv2d(1, 48, 11, stride=4, padding=1),
-            LeakyReLU(),
+            LeakyNormConv2d(1, 48, 11, 4, batch_nn=False),
             LeakyNormConv2d(48, 128, 5, 2),
             LeakyNormConv2d(128, 192, 5, 1),
             LeakyNormConv2d(192, 192, 3, 1),
             LeakyNormConv2d(192, 128, 3, 2),
         )
 
-        self.connect = nn.Sequential(
+        self.fc = nn.Sequential(
             nn.Linear(128 * 7 * 7, 1024),
             LeakyReLU(),
             nn.Linear(1024, 2),
@@ -56,5 +59,5 @@ class DPEDDiscriminator(nn.Module):
 
     def forward(self, image):
         x = self.model(image)
-        x = x.view(x.size(0), -1)  # Flatten the tensor
-        return self.connect(x)
+        view = x.flatten(1)
+        return self.fc(view)
