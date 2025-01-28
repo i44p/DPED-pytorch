@@ -30,7 +30,7 @@ class LeakyNormConv2d(nn.Module):
 
 
 class DPEDDiscriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, use_softmax=False):
         super().__init__()
 
         self.model = nn.Sequential(
@@ -41,12 +41,16 @@ class DPEDDiscriminator(nn.Module):
             LeakyNormConv2d(192, 128, 3, 2),
         )
 
-        self.fc = nn.Sequential(
+        layers = [
             nn.Linear(128 * 7 * 7, 1024),
             LeakyReLU(),
             nn.Linear(1024, 2),
-            nn.Softmax(dim=1)
-        )
+        ]
+        
+        if use_softmax:
+            layers.append(nn.Softmax(dim=1))
+
+        self.fc = nn.Sequential(*layers)
 
         self._initialize_weights()
 
