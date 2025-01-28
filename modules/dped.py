@@ -33,6 +33,7 @@ class DPEDModel(nn.Module):
                 "params": list(discriminator.parameters())
             }
         )
+        discriminator.train(True)
 
     
         if self.config.trainer.get('resume_path'):
