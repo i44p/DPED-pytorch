@@ -13,50 +13,48 @@ class DPEDModel(nn.Module):
         self.config = config
         self.device = device
 
-        self._params_to_optim, self.generator, self.discriminator = self._prepare_models()
+        self.generator, self.discriminator = self._prepare_models()
+        self.optimizer_generator, self.optimizer_discriminator = self._prepare_optimizers()
         self.criterion = self._prepare_criterion()
-        self.optimizer = self._prepare_optimizer()
 
         self.cross_entropy = nn.CrossEntropyLoss(reduction='none')
         self.grayscale = Grayscale()
         
     def _prepare_models(self):
-        params_to_optim = []
         
         generator = import_class(self.config.model.generator.module)().to(self.device)
-        params_to_optim.append(
-            {
-                "params": list(generator.parameters())
-            }
-        )
         generator.train(True)
 
         discriminator = import_class(self.config.model.discriminator.module)().to(self.device)
-        params_to_optim.append(
-            {
-                "params": list(discriminator.parameters())
-            }
-        )
         discriminator.train(True)
 
     
         if self.config.trainer.get('resume_path'):
             load_model(self, self.config.trainer.resume_path)
 
-        return params_to_optim, generator, discriminator
+        return generator, discriminator
     
     def _prepare_criterion(self):
         return import_class(self.config.model.generator.criterion.get('module', torch.nn.MSELoss))(
                 **self.config.model.generator.criterion.get("args", {'reduction': 'none'})
             )
     
-    def _prepare_optimizer(self):
-        params_to_optim = self._params_to_optim
-
+    def _prepare_optimizer(self, param_groups: list[dict]):
         return import_class(self.config.hyperparameters.optimizer.name)(
-            params_to_optim,
+            param_groups,
             **self.config.hyperparameters.optimizer.args
         )
+
+    def _prepare_optimizers(self):
+        g_optim = self._prepare_optimizer([{
+            "params": list(self.generator.parameters())
+        }])
+
+        d_optim = self._prepare_optimizer([{
+            "params": list(self.discriminator.parameters())
+        }])
+
+        return g_optim, d_optim
     
     def forward(self, model_input, target):
         losses_mean = []
@@ -88,8 +86,8 @@ class DPEDModel(nn.Module):
         loss = loss_discriminator.mean()
 
         loss.backward()
-        self.optimizer.step()
-        self.optimizer.zero_grad(set_to_none=True)
+        self.optimizer_discriminator.step()
+        self.optimizer_discriminator.zero_grad(set_to_none=True)
 
         return loss.item()
     
@@ -100,6 +98,7 @@ class DPEDModel(nn.Module):
         loss = generator_loss.mean()
 
         loss.backward()
-        self.optimizer.step()
-        self.optimizer.zero_grad(set_to_none=True)
+        self.optimizer_generator.step()
+        self.optimizer_generator.zero_grad(set_to_none=True)
+
         return loss.item()
