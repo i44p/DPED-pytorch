@@ -81,12 +81,11 @@ class DPEDModel(nn.Module):
 
         discriminator_input = grayscale_output * (1 - target_prob.view([batch, 1, 1, 1])) + \
                               self.grayscale(target) * target_prob.view([batch, 1, 1, 1])
-        discriminator_target = torch.cat([target_prob, 1-target_prob], 1)[:,0]
+        discriminator_target = torch.cat([target_prob, 1-target_prob], 1)
 
         discriminator_output = self.discriminator(grayscale_output)
-        discriminator_real_confidence = discriminator_output[:,0]
 
-        loss_discriminator = self.cross_entropy(discriminator_real_confidence, discriminator_target)
+        loss_discriminator = self.cross_entropy(discriminator_output, discriminator_target).mean()
         loss = loss_discriminator.mean()
 
         loss_discriminator.backward()
