@@ -47,21 +47,12 @@ class DPEDLoss(torch.nn.Module):
 
     def texture_loss(self, output, target):
         # (3.1.2) texture loss
-
-        # branchless condition, per-image loss
-        # target_prob = torch.randint(0,2,[output.shape[0], 1]).float()
-        # discriminator_input = self.grayscale(output) * (1 - target_prob.view([batch, 1, 1, 1])) + \
-        #                       self.grayscale(target) * target_prob.view([batch, 1, 1, 1])
-        # discriminator_target = torch.cat([target_prob, 1-target_prob], 1)
         
         discriminator_output = self.dped.discriminator(self.grayscale(output))
-        
         discriminator_real_confidence = discriminator_output[:,0]
-
         discriminator_target = torch.ones([output.shape[0]])
 
         loss_texture = self.cross_entropy(discriminator_real_confidence, discriminator_target)
-        # loss_discriminator = -loss_texture
 
         return loss_texture
 
