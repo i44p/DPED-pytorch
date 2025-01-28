@@ -14,7 +14,7 @@ class Trainer:
         self.config = config
 
         self.model = import_class(self.config.model.module)(self.config, self.device)
-        
+
         self.dataloader = self.prepare_dataloader()
 
     def prepare_dataloader(self):
@@ -24,7 +24,7 @@ class Trainer:
         )
         return dataset.get_dataloader()
 
-    def checkpoint(self, path: pathlib.Path):
+    def checkpoint(self, path: pathlib.Path = None):
         name = f'checkpoint-epoch-{self.current_epoch}-step-{self.global_step}.safetensors'
         if path:
             path = pathlib.Path(path)
