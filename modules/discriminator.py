@@ -30,7 +30,7 @@ class DPEDDiscriminator(nn.Module):
         super().__init__()
 
         self.model = nn.Sequential(
-            nn.Conv2d(3, 48, 11, stride=4, padding=1),
+            nn.Conv2d(1, 48, 11, stride=4, padding=1),
             LeakyReLU(),
             LeakyNormConv2d(48, 128, 5, 2),
             LeakyNormConv2d(128, 192, 5, 1),
