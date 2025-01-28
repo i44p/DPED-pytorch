@@ -34,8 +34,8 @@ class DPEDDiscriminator(nn.Module):
             LeakyReLU(),
             LeakyNormConv2d(48, 128, 5, 2),
             LeakyNormConv2d(128, 192, 5, 1),
-            LeakyNormConv2d(192, 128, 3, 1),
-            LeakyNormConv2d(128, 128, 3, 2),
+            LeakyNormConv2d(192, 192, 3, 1),
+            LeakyNormConv2d(192, 128, 3, 2),
         )
 
         self.connect = nn.Sequential(
