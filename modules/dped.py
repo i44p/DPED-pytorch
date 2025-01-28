@@ -13,35 +13,35 @@ class DPEDModel(nn.Module):
         self.config = config
         self.device = device
 
-        self.generator = self._prepare_models()
+        self._params_to_optim, self.generator = self._prepare_models()
         self.criterion = self._prepare_criterion()
         
     def _prepare_models(self):
+        params_to_optim = []
+
         generator = import_class(self.config.model.generator.module)().to(self.device)
         trainer = self.config.trainer
         if trainer.get('resume_path'):
             load_model(generator, traner.resume_path)
+        
+        params_to_optim.append(
+                {
+                    "params": list(generator.parameters())
+                }
+            )
+
         generator.train(True)
-        return generator
+
+        return params_to_optim, generator
     
     def _prepare_criterion(self):
-        self.criterion = import_class(self.config.criterion.get('module', torch.nn.MSELoss))(
+        return import_class(self.config.criterion.get('module', torch.nn.MSELoss))(
                 self,
                 **self.config.criterion.get("args", {'reduction': 'none'})
             )
     
     def get_parameters_to_optimize(self):
-        params_to_optim = []
-
-        for model in [self.generator]:
-            params_to_optim.append(
-                {
-                    "params": list(model.parameters())
-                }
-            )
-            model.train(True)
-        
-        return params_to_optim
+        return self._params_to_optim
     
     def forward(self, model_input, target):
 
