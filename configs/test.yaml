@@ -10,7 +10,7 @@ trainer:
 model:
   module: modules.dped.DPEDModel
   generator:
-    module: modules.dped.DPEDGenerator
+    module: modules.generator.DPEDGenerator
   discriminator:
     module: modules.discriminator.DPEDDiscriminator
   

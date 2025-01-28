@@ -1,10 +1,8 @@
 import torch
 import torch.nn as nn
 
-from .discriminator import DPEDDiscriminator
-from .generator import DPEDGenerator
-
 from class_utils import import_class
+
 
 class DPEDModel(nn.Module):
     def __init__(self, config, device):
