@@ -1,16 +1,9 @@
 import torch
 import pathlib
+from class_utils import import_class
 from omegaconf import OmegaConf
 from tqdm import tqdm, trange
 from safetensors.torch import save_model, load_model
-from modules import DPEDGenerator
-
-
-def import_class(name=None):
-    import importlib
-    module_name, class_name = name.rsplit('.', 1)
-    module = importlib.import_module(module_name, package=None)
-    return getattr(module, class_name)
 
 
 class Trainer:
@@ -19,29 +12,14 @@ class Trainer:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         self.config = config
-        self.model = self.prepare_models()
 
-        models = [self.model]
-        self.optimizer = self.prepare_optimizer(models)
+        self.model = import_class(self.config.model.module)(self.config, self.device)
+
+        self.optimizer = self.prepare_optimizer()
         self.dataloader = self.prepare_dataloader()
 
-    def prepare_models(self):
-        model = DPEDGenerator().to(self.device)
-        trainer = self.config.trainer
-        if trainer.get('resume_path'):
-            load_model(model, traner.resume_path)
-        model.train(True)
-        return model
-
-    def prepare_optimizer(self, models):
-        params_to_optim = []
-
-        for model in models:
-            params_to_optim.append(
-                {
-                    "params": list(self.model.parameters())
-                }
-            )
+    def prepare_optimizer(self):
+        params_to_optim = self.model.get_parameters_to_optimize()
 
         return import_class(self.config.hyperparameters.optimizer.name)(
             params_to_optim,
@@ -55,7 +33,7 @@ class Trainer:
         )
         return dataset.get_dataloader()
 
-    def checkpoint(self, path: pathlib.Path = None):
+    def checkpoint(self, path: pathlib.Path):
         name = f'checkpoint-epoch-{self.current_epoch}-step-{self.global_step}.safetensors'
         if path:
             path = pathlib.Path(path)
@@ -72,11 +50,6 @@ class Trainer:
         print(f'Model saved: {save_path}!')
 
     def train(self):
-
-        criterion = import_class(self.config.criterion.get('module', torch.nn.MSELoss))(
-            **self.config.criterion.get("args", {'reduction': 'none'})
-        )
-
         self.end_epoch = self.config.trainer.get("end_epoch", 1)
         self.end_step = self.config.trainer.get("end_step", 0)
 
@@ -105,9 +78,7 @@ class Trainer:
                 model_input = batch[0].to(self.device)
                 target = batch[1].to(self.device)
 
-                model_output = self.model(model_input)
-
-                loss = criterion(model_output, target)
+                loss = self.model(model_input, target)
 
                 loss = loss.mean()
 

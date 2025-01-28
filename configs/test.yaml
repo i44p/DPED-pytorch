@@ -8,6 +8,12 @@ trainer:
   end_epoch: 1
 
 model:
+  module: modules.dped.DPEDModel
+  generator:
+    module: modules.dped.DPEDGenerator
+  discriminator:
+    module: modules.discriminator.DPEDDiscriminator
+  
   image_normalization:
     min: 0
     max: 1
