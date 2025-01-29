@@ -57,15 +57,15 @@ class DPEDModel(nn.Module):
         return g_optim, d_optim
     
     def forward(self, model_input, target):
-        losses_mean = []
+        losses = []
         
         discriminator_loss = self._discriminator_pass(model_input, target)
-        losses_mean.append(discriminator_loss)
+        losses.append(discriminator_loss)
 
         generator_loss = self._generator_pass(model_input, target)
-        losses_mean.append(generator_loss)
+        losses.append(generator_loss)
 
-        return losses_mean
+        return losses
     
     def _discriminator_pass(self, model_input, target):
         with torch.no_grad():
