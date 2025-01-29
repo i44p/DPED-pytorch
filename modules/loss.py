@@ -73,7 +73,7 @@ class DPEDLoss(torch.nn.Module):
         x_tv = self.mse_loss(output[:,:,1:,:], output[:,:,:height-1,:])
         y_tv = self.mse_loss(output[:,:,:,1:], output[:,:,:,:width-1,])
 
-        return (x_tv/tv_x_size + y_tv/tv_y_size).view([batch, 1, 1, 1])
+        return (x_tv/tv_x_size + y_tv/tv_y_size)
 
 
 
