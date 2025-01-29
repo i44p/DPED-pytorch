@@ -10,7 +10,7 @@ trainer:
 model:
   module: modules.dped.DPEDModel
   generator:
-    module: modules.generator.DPEDGenerator
+    module: modules.models.generator.DPEDGenerator
     criterion:
       module: modules.loss.DPEDLoss
       args:
@@ -21,7 +21,7 @@ model:
         blur_sigma: 3
         blur_kernel_size: 21
   discriminator:
-    module: modules.discriminator.DPEDDiscriminator
+    module: modules.models.discriminator.DPEDDiscriminator
     lr_factor: 0.5
   
   image_normalization:
