@@ -47,11 +47,12 @@ class DPEDLoss(torch.nn.Module):
         # (3.1.2) texture loss
 
         batch = output.shape[0]
+        device = output.device
 
         with torch.no_grad():
             discriminator_output = discriminator(self.grayscale(output))
 
-        discriminator_target = torch.cat([torch.zeros([batch, 1]), torch.ones([batch, 1])], 1)
+        discriminator_target = torch.cat([torch.zeros([batch, 1], device=device), torch.ones([batch, 1], device=device)], 1)
 
         loss_discrim = self.cross_entropy(discriminator_output, discriminator_target)
         loss_texture = -loss_discrim.view([batch, 1, 1, 1])
