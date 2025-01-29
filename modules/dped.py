@@ -51,7 +51,8 @@ class DPEDModel(nn.Module):
         }])
 
         d_optim = self._prepare_optimizer([{
-            "params": list(self.discriminator.parameters())
+            "params": list(self.discriminator.parameters()),
+            "lr": float(self.config.hyperparameters.optimizer.args.lr) * float(self.config.model.discriminator.lr_factor),
         }])
 
         return g_optim, d_optim

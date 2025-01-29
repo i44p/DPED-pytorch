@@ -22,6 +22,7 @@ model:
         blur_kernel_size: 21
   discriminator:
     module: modules.discriminator.DPEDDiscriminator
+    lr_factor: 0.5
   
   image_normalization:
     min: 0
