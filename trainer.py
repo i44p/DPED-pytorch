@@ -47,21 +47,18 @@ class Trainer:
         checkpoint_step = self.config.trainer.get("checkpoint_step", 0)
         checkpoint_epoch = self.config.trainer.get("checkpoint_epoch", 0)
 
-        self.current_epoch = -1
-        self.global_step = -1
+        self.current_epoch = 0
+        self.global_step = 0
 
         do_train = True
-        epoch_bar = trange(1, self.end_epoch+1)
-        while do_train:
-            self.current_epoch += 1
-            epoch_bar.n = self.current_epoch
+        epoch_bar = trange(self.end_epoch)
+        for self.current_epoch in epoch_bar:
             epoch_bar.set_description(f"Epoch: {self.current_epoch}")
 
             torch.cuda.empty_cache()
 
             step_bar = tqdm(self.dataloader, desc='step')
             for batch_idx, batch in enumerate(step_bar):
-                self.global_step += 1
                 step_bar.set_description(f"Global step: {self.global_step}")
                 
                 ###
@@ -86,15 +83,22 @@ class Trainer:
                     if self.global_step >= self.end_step:
                         do_train = False
                         break
+                
+                self.global_step += 1
 
             if checkpoint_epoch:
-                if self.current_epoch % checkpoint_epoch == 0:
+                if (self.current_epoch + 1) % checkpoint_epoch == 0:
                     self.checkpoint()
 
             if self.end_epoch:
-                if self.current_epoch >= self.end_epoch:
+                if (self.current_epoch + 1) >= self.end_epoch:
                     do_train = False
                     break
+            
+            if not do_train:
+                break
+            
+            self.current_epoch += 1
 
         save_path = self.config.trainer.get("save_path", "")
         if save_path:
