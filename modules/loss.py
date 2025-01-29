@@ -9,6 +9,7 @@ class DPEDLoss(torch.nn.Module):
         w_texture,
         w_content,
         w_total_variation,
+        blur_A,
         blur_sigma,
         blur_kernel_size,
     ):
@@ -20,6 +21,7 @@ class DPEDLoss(torch.nn.Module):
         self.w_content = w_content
         self.w_total_variation = w_total_variation
 
+        self.blur_A = blur_A
         self.blur = GaussianBlur(kernel_size=blur_kernel_size, sigma=blur_sigma)
         self.grayscale = Grayscale()
 
@@ -41,7 +43,10 @@ class DPEDLoss(torch.nn.Module):
 
     def color_loss(self, output, target):
         # (3.1.1) texture loss
-        return self.mse_loss(self.blur(output), self.blur(target))
+        return self.mse_loss(
+            self.blur_A * self.blur(output), 
+            self.blur_A * self.blur(target)
+        )
 
     def texture_loss(self, output, target, discriminator):
         # (3.1.2) texture loss
