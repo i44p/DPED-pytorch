@@ -90,8 +90,8 @@ class Trainer:
 
                 if self.use_wandb:
                     self.wandb_run.log({
-                        "discriminator_loss": losses[0],
-                        "generator_loss": losses[1]
+                        "train/discriminator_loss": losses[0],
+                        "train/generator_loss": losses[1]
                     })
 
                 if self.end_step:
