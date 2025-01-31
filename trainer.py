@@ -42,8 +42,7 @@ class Trainer:
         save_path = pathlib.Path(path).resolve()
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_model(self.model, save_path)
-        print()
-        print(f'Model saved: {save_path}!')
+        print(f'\nModel saved: {save_path}!\n')
     
     def init_wandb(self):
         return wandb.init(
