@@ -118,3 +118,6 @@ class Trainer:
         save_path = self.config.trainer.get("save_path", "")
         if save_path:
             self.save_model(save_path)
+        
+        if self.use_wandb:
+            wandb.finish()
