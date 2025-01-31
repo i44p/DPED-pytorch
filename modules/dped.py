@@ -28,6 +28,8 @@ class DPEDModel(nn.Module):
         discriminator = import_class(self.config.model.discriminator.module)().to(self.device)
         discriminator.train(True)
 
+        self.vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
+        self.vgg.eval()
     
         if self.config.trainer.get('resume_path'):
             load_model(self, self.config.trainer.resume_path)
@@ -97,7 +99,7 @@ class DPEDModel(nn.Module):
     
     def _generator_pass(self, model_input, target):
         output = self.generator(model_input)
-        generator_loss, other = self.criterion(output, target, self.discriminator)
+        generator_loss, other = self.criterion(output, target, self.discriminator, self.vgg)
         
         loss = generator_loss.mean()
 

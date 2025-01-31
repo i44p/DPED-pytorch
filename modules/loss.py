@@ -27,7 +27,6 @@ class DPEDLoss(torch.nn.Module):
         self.mse_loss = torch.nn.MSELoss(reduction='none')
         self.cross_entropy = torch.nn.CrossEntropyLoss(reduction='none')
 
-        self.vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True)
         self.vgg_preprocess = transforms.Compose([
             #transforms.Resize(256),
             #transforms.CenterCrop(224),
@@ -36,10 +35,10 @@ class DPEDLoss(torch.nn.Module):
         ])
         self.l1_loss = torch.nn.L1Loss(reduction='none')
 
-    def forward(self, output, target, discriminator):
+    def forward(self, output, target, discriminator, vgg):
         color_loss = self.w_color * self.color_loss(output, target)
         texture_loss = self.w_texture * self.texture_loss(output, target, discriminator)
-        content_loss = self.w_content * self.content_loss(output, target)
+        content_loss = self.w_content * self.content_loss(output, target, vgg)
         total_variation_loss = self.w_total_variation * self.variation_loss(output, target)
 
         loss = color_loss + texture_loss + content_loss + total_variation_loss
@@ -73,9 +72,9 @@ class DPEDLoss(torch.nn.Module):
 
         return loss_texture
 
-    def content_loss(self, output, target):
+    def content_loss(self, output, target, vgg):
         # (3.1.3) content loss
-        loss_content = self.l1_loss(self.vgg(self.vgg_preprocess(output)), self.vgg(self.vgg_preprocess(target))).mean()
+        loss_content = self.l1_loss(vgg(self.vgg_preprocess(output)), vgg(self.vgg_preprocess(target))).mean()
         return loss_content
 
     def variation_loss(self, output, target):
