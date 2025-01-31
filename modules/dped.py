@@ -28,8 +28,9 @@ class DPEDModel(nn.Module):
         discriminator = import_class(self.config.model.discriminator.module)().to(self.device)
         discriminator.train(True)
 
-        self.vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
-        self.vgg.eval()
+        vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
+        vgg.eval()
+        self.__dict__['vgg'] = vgg
     
         if self.config.trainer.get('resume_path'):
             load_model(self, self.config.trainer.resume_path)
