@@ -27,15 +27,12 @@ class DPEDLoss(torch.nn.Module):
         self.cross_entropy = torch.nn.CrossEntropyLoss(reduction='none')
 
     def forward(self, output, target, discriminator):
-        color_loss = self.color_loss(output, target)
-        texture_loss = self.texture_loss(output, target, discriminator)
-        content_loss = self.content_loss(output, target)
-        total_variation_loss = self.variation_loss(output, target)
+        color_loss = self.w_color * self.color_loss(output, target)
+        texture_loss = self.w_texture * self.texture_loss(output, target, discriminator)
+        content_loss = self.w_content * self.content_loss(output, target)
+        total_variation_loss = self.w_total_variation * self.variation_loss(output, target)
 
-        loss = self.w_color * color_loss + \
-            self.w_texture * texture_loss + \
-            self.w_content * content_loss + \
-            self.w_total_variation * total_variation_loss
+        loss = color_loss + texture_loss + content_loss + total_variation_loss
 
         return loss
 
