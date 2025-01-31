@@ -58,13 +58,16 @@ class DPEDModel(nn.Module):
         return g_optim, d_optim
     
     def forward(self, model_input, target):
-        losses = []
+        losses = {}
         
         discriminator_loss = self._discriminator_pass(model_input, target)
-        losses.append(discriminator_loss)
+        losses['discrim'] = discriminator_loss
 
-        generator_loss = self._generator_pass(model_input, target)
-        losses.append(generator_loss)
+        generator_loss, other = self._generator_pass(model_input, target)
+        losses['generator'] = generator_loss
+
+        for k, loss in other.items():
+            losses[k] = loss.mean().item()
 
         return losses
     
@@ -94,7 +97,7 @@ class DPEDModel(nn.Module):
     
     def _generator_pass(self, model_input, target):
         output = self.generator(model_input)
-        generator_loss = self.criterion(output, target, self.discriminator)
+        generator_loss, other = self.criterion(output, target, self.discriminator)
         
         loss = generator_loss.mean()
 
@@ -102,4 +105,4 @@ class DPEDModel(nn.Module):
         self.optimizer_generator.step()
         self.optimizer_generator.zero_grad(set_to_none=True)
 
-        return loss.item()
+        return loss.item(), other

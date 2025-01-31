@@ -34,7 +34,14 @@ class DPEDLoss(torch.nn.Module):
 
         loss = color_loss + texture_loss + content_loss + total_variation_loss
 
-        return loss
+        other = {
+            "color": color_loss,
+            "texture": texture_loss,
+            "content": content_loss,
+            "tv": total_variation_loss,
+        }
+
+        return loss, other
 
     def color_loss(self, output, target):
         # (3.1.1) texture loss

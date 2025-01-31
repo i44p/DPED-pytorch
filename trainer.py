@@ -81,7 +81,7 @@ class Trainer:
 
                 ###
 
-                stat_str = f"losses: {[round(loss, 5) for loss in losses]}"
+                stat_str = ' '.join([f'{k} {loss:0.4f}' for k, loss in losses.items()])
                 step_bar.set_postfix_str(stat_str)
 
                 if checkpoint_step and self.global_step > 0:
@@ -89,10 +89,12 @@ class Trainer:
                         self.checkpoint()
 
                 if self.use_wandb:
-                    self.wandb_run.log({
-                        "train/discriminator_loss": losses[0],
-                        "train/generator_loss": losses[1]
-                    })
+                    report = {}
+                    template = "train/{}_loss"
+                    for k, loss in losses.items():
+                        report[template.format(k)] = loss
+        
+                    self.wandb_run.log(report)
 
                 if self.end_step:
                     if self.global_step >= self.end_step:
