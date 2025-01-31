@@ -48,7 +48,7 @@ class Trainer:
     def init_wandb(self):
         return wandb.init(
             project=self.config.evaluation.wandb_project,
-            config=self.config
+            config=dict(self.config)
         )
 
     def train(self):
