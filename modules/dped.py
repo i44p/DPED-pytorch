@@ -30,6 +30,7 @@ class DPEDModel(nn.Module):
 
         vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
         vgg.eval()
+        vgg.requires_grad(False)
         self.__dict__['vgg'] = vgg
     
         if self.config.trainer.get('resume_path'):
