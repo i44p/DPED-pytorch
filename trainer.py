@@ -1,5 +1,6 @@
 import torch
 import pathlib
+import wandb
 from class_utils import import_class
 from omegaconf import OmegaConf
 from tqdm import tqdm, trange
@@ -16,6 +17,10 @@ class Trainer:
         self.model = import_class(self.config.model.module)(self.config, self.device)
 
         self.dataloader = self.prepare_dataloader()
+
+        self.use_wandb = self.config.evaluation.get('use_wandb', False)
+        if self.use_wandb:
+            self.wandb_run = self.init_wandb()
 
     def prepare_dataloader(self):
         dataset = import_class(self.config.dataset.module)(
@@ -39,6 +44,12 @@ class Trainer:
         save_model(self.model, save_path)
         print()
         print(f'Model saved: {save_path}!')
+    
+    def init_wandb(self):
+        return wandb.init(
+            project=self.config.evaluation.wandb_project,
+            config=self.config
+        )
 
     def train(self):
         self.end_epoch = self.config.trainer.get("end_epoch", 1)
@@ -68,16 +79,20 @@ class Trainer:
                 
                 losses = self.model(model_input, target)
 
-                losses = [round(loss, 5) for loss in losses]
-
                 ###
 
-                stat_str = f"losses: {losses}"
+                stat_str = f"losses: {[round(loss, 5) for loss in losses]}"
                 step_bar.set_postfix_str(stat_str)
 
                 if checkpoint_step and self.global_step > 0:
                     if self.global_step % checkpoint_step == 0:
                         self.checkpoint()
+
+                if self.use_wandb:
+                    self.wandb_run.log({
+                        "discriminator_loss": losses[0],
+                        "generator_loss": losses[1]
+                    })
 
                 if self.end_step:
                     if self.global_step >= self.end_step:

@@ -41,3 +41,17 @@ dataset:
     path: dataset/dped/blackberry/training_data
     input_label: blackberry
     target_label: canon
+  
+evaluation:
+  frequency_steps: 10
+  frequency_epochs: 1
+  batch_sample_size: 5
+  dataset:
+    module: data.patches.DPEDPatchDataset
+    args:
+      path: dataset/dped/blackberry/test_data/patches/blackberry/
+      input_label: blackberry
+      target_label: canon
+  use_wandb: true
+  wandb_project: "test"
+  
