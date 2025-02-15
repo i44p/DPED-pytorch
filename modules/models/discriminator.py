@@ -30,7 +30,7 @@ class LeakyNormConv2d(nn.Module):
 
 
 class DPEDDiscriminator(nn.Module):
-    def __init__(self, use_softmax=False):
+    def __init__(self, use_softmax=True):
         super().__init__()
 
         self.model = nn.Sequential(
