@@ -75,7 +75,7 @@ class DPEDLoss(torch.nn.Module):
     def content_loss(self, output, target, vgg):
         # (3.1.3) content loss
         with torch.no_grad():
-            loss_content = self.l1_loss(vgg(self.vgg_preprocess(output)), vgg(self.vgg_preprocess(target))).mean()
+            loss_content = self.mse_loss(vgg(self.vgg_preprocess(output)), vgg(self.vgg_preprocess(target))).mean()
         return loss_content
 
     def variation_loss(self, output, target):
