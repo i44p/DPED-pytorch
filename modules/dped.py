@@ -35,6 +35,7 @@ class DPEDModel(nn.Module):
     
         if self.config.trainer.get('resume_path'):
             load_model(self, self.config.trainer.resume_path)
+            print(f"Loaded the checkpoint from {self.config.trainer.resume_path}!")
 
         return generator, discriminator
     
