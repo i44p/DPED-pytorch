@@ -32,10 +32,11 @@ class DPEDModel(nn.Module):
         vgg.eval()
         vgg.requires_grad_(False)
         self.__dict__['vgg'] = vgg
-    
-        if self.config.trainer.get('resume_path'):
-            load_model(self, self.config.trainer.resume_path)
-            print(f"Loaded the checkpoint from {self.config.trainer.resume_path}!")
+
+        resume_path = self.config.trainer.get('resume_path')
+        if resume_path:
+            load_model(self, resume_path)
+            print(f"Loaded the checkpoint from {resume_path}!")
 
         return generator, discriminator
     
