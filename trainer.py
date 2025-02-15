@@ -16,6 +16,11 @@ class Trainer:
 
         self.model = import_class(self.config.model.module)(self.config, self.device)
 
+        resume_path = self.config.trainer.get('resume_path')
+        if resume_path:
+            load_model(self.model, resume_path, device=self.device)
+            print(f"Loaded the checkpoint from {resume_path}!")
+
         self.dataloader = self.prepare_dataloader()
 
         self.use_wandb = self.config.evaluation.get('use_wandb', False)

@@ -1,5 +1,5 @@
 trainer:
-  load_from:
+  resume_path:
   save_path: checkpoints/test.safetensors
   checkpoint_path: checkpoints/
   checkpoint_epoch: 1        # checkpoint every n epochs

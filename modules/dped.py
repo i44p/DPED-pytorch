@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torchvision.transforms import Grayscale
+from safetensors.torch import load_model
 
 from class_utils import import_class
 
@@ -32,11 +33,6 @@ class DPEDModel(nn.Module):
         vgg.eval()
         vgg.requires_grad_(False)
         self.__dict__['vgg'] = vgg
-
-        resume_path = self.config.trainer.get('resume_path')
-        if resume_path:
-            load_model(self, resume_path)
-            print(f"Loaded the checkpoint from {resume_path}!")
 
         return generator, discriminator
     
