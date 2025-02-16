@@ -16,7 +16,10 @@ if __name__ == '__main__':
 
 import os
 import torch
+
 torch.set_num_threads(os.cpu_count())
+
+torch.backends.cudnn.benchmark = True
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
