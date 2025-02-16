@@ -82,13 +82,15 @@ class DPEDLoss(torch.nn.Module):
         # (3.1.4) total variation loss
         batch, channels, height, width = output.shape
 
-        tv_y_size = (height - 1) * width * channels
-        tv_x_size = height * (width - 1) * channels
+        # height * (width - 1) * channels + (height - 1) * width * channels
+        xy_size = channels * (2 * height * width - height - width)
 
-        x_tv = self.mse_loss(output[:,:,1:,:], output[:,:,:height-1,:]).mean()
-        y_tv = self.mse_loss(output[:,:,:,1:], output[:,:,:,:width-1,]).mean()
+        # row d
+        y_tv = self.mse_loss(output[:, :,1:, :], output[:, :, :-1, :]).sum(dim=[1,2,3])
+        # column d
+        x_tv = self.mse_loss(output[:, :, :,1:], output[:, :, :, :-1]).sum(dim=[1,2,3])
 
-        return (x_tv/tv_x_size + y_tv/tv_y_size)
+        return ((x_tv + y_tv) / xy_size).view(batch, 1, 1, 1)
 
 
 
