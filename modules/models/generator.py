@@ -8,10 +8,10 @@ class ResidualBlock(nn.Module):
         super().__init__()
 
         self.block = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size // 2),
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding='same'),
             nn.InstanceNorm2d(in_channels),
             nn.ReLU(True),
-            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size // 2),
+            nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding='same'),
             nn.InstanceNorm2d(in_channels),
         )
 
@@ -26,7 +26,7 @@ class DPEDGenerator(nn.Module):
         super().__init__()
 
         self.resnet = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=9, padding=4),
+            nn.Conv2d(3, 64, kernel_size=9, padding='same'),
             nn.ReLU(True),
 
             # Four residual blocks
@@ -38,11 +38,11 @@ class DPEDGenerator(nn.Module):
             ),
 
             # Additional convolutional layers
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.Conv2d(64, 64, kernel_size=3, padding='same'),
             nn.ReLU(True),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.Conv2d(64, 64, kernel_size=3, padding='same'),
             nn.ReLU(True),
-            nn.Conv2d(64, 3, kernel_size=9, padding=4)
+            nn.Conv2d(64, 3, kernel_size=9, padding='same')
         )
 
         self._initialize_weights()

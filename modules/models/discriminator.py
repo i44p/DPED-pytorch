@@ -16,7 +16,7 @@ class LeakyNormConv2d(nn.Module):
         super().__init__()
 
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=kernel_size // 2),
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding='same'),
             LeakyReLU(),
         ]
 
