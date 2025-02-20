@@ -4,7 +4,7 @@ from torchvision import transforms
 from functools import lru_cache
 
 
-class GaussianBlur2(nn.Module):
+class GaussianBlur2(torch.nn.Module):
     def __init__(self, kernel_size=21, sigma=3):
         super().__init__()
         self.kernlen = kernel_size
@@ -31,7 +31,7 @@ class GaussianBlur2(nn.Module):
         """
         # expand kernel to match the number of input channels
         kernel = self.kernel.repeat(x.size(1), 1, 1, 1)  # [channels, 1, kernlen, kernlen]
-        return F.conv2d(
+        return torch.nn.functional.conv2d(
             x.float(),
             weight=kernel,
             bias=None,
