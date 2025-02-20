@@ -3,6 +3,44 @@ from torchvision.transforms import GaussianBlur, Grayscale
 from torchvision import transforms
 from functools import lru_cache
 
+
+class GaussianBlur2(nn.Module):
+    def __init__(self, kernel_size=21, sigma=3):
+        super().__init__()
+        self.kernlen = kernel_size
+        self.nsig = sigma
+        self.normal = torch.distributions.Normal(0.0, 1.0)
+        self.register_buffer('kernel', self._create_gaussian_kernel())
+
+    def _create_gaussian_kernel(self):
+        interval = (2 * self.nsig + 1.) / self.kernlen
+        x = torch.linspace(-self.nsig - interval / 2., self.nsig + interval / 2., self.kernlen + 1)
+        kern1d = torch.diff(self.normal.cdf(x))
+        kernel_raw = torch.sqrt(torch.outer(kern1d, kern1d))
+        kernel = kernel_raw / kernel_raw.sum()
+        # reshape to [1, 1, kernlen, kernlen] for convolution
+        kernel = kernel.view(1, 1, self.kernlen, self.kernlen)
+        return kernel
+
+    def forward(self, x):
+        """
+        Apply Gaussian blur to the input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape [batch_size, channels, height, width].
+        """
+        # expand kernel to match the number of input channels
+        kernel = self.kernel.repeat(x.size(1), 1, 1, 1)  # [channels, 1, kernlen, kernlen]
+        return F.conv2d(
+            x.float(),
+            weight=kernel,
+            bias=None,
+            stride=1,
+            padding='same',
+            groups=x.size(1)  # use groups to apply separate blurring per channel
+        )
+
+
 class DPEDLoss(torch.nn.Module):
     def __init__(
         self,
@@ -21,7 +59,7 @@ class DPEDLoss(torch.nn.Module):
         self.w_content = w_content
         self.w_total_variation = w_total_variation
 
-        self.blur = GaussianBlur(kernel_size=blur_kernel_size, sigma=blur_sigma)
+        self.blur = GaussianBlur2(kernel_size=blur_kernel_size, sigma=blur_sigma)
         self.grayscale = Grayscale()
 
         self.mse_loss = torch.nn.MSELoss(reduction='none')
