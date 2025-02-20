@@ -10,7 +10,7 @@ class GaussianBlur2(torch.nn.Module):
         self.kernlen = kernel_size
         self.nsig = sigma
         self.normal = torch.distributions.Normal(0.0, 1.0)
-        self.register_buffer('kernel', self._create_gaussian_kernel())
+        self.kernel = self._create_gaussian_kernel()
 
     def _create_gaussian_kernel(self):
         interval = (2 * self.nsig + 1.) / self.kernlen
