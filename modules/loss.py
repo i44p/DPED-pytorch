@@ -32,8 +32,8 @@ class GaussianBlur2(torch.nn.Module):
         # expand kernel to match the number of input channels
         kernel = self.kernel.repeat(x.size(1), 1, 1, 1)  # [channels, 1, kernlen, kernlen]
         return torch.nn.functional.conv2d(
-            x.float(),
-            weight=kernel,
+            x,
+            weight=kernel.to(x.device).type_as(x),
             bias=None,
             stride=1,
             padding='same',
