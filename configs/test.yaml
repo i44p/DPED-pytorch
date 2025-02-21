@@ -4,7 +4,7 @@ trainer:
   checkpoint_path: checkpoints/
   checkpoint_epoch: 1        # checkpoint every n epochs
   checkpoint_step: 500       # 0: don't checkpoint
-  end_step: 10
+  end_step: 100
   end_epoch: 1
 
 model:
@@ -33,7 +33,7 @@ hyperparameters:
     name: torch.optim.AdamW
     args:
       lr: 3e-4
-  batch_size: 20
+  batch_size: 5
 
 dataset:
   module: data.patches.DPEDPatchDataset
@@ -52,6 +52,6 @@ evaluation:
       path: dataset/dped/blackberry/test_data/patches/blackberry/
       input_label: blackberry
       target_label: canon
-  use_wandb: true
+  use_wandb: false
   wandb_project: "test"
   
