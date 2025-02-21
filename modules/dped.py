@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torchvision.transforms import Grayscale
+from torchvision.models.feature_extraction import create_feature_extractor
 from safetensors.torch import load_model
 
 from class_utils import import_class
@@ -32,7 +33,7 @@ class DPEDModel(nn.Module):
         vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
         vgg.eval()
         vgg.requires_grad_(False)
-        self.__dict__['vgg'] = vgg
+        self.__dict__['vgg'] = create_feature_extractor(vgg, return_nodes={'features.35': 'relu5_4'})
 
         return generator, discriminator
     
