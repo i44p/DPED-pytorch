@@ -33,7 +33,8 @@ class DPEDModel(nn.Module):
         vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
         vgg.eval()
         vgg.requires_grad_(False)
-        self.__dict__['vgg'] = create_feature_extractor(vgg, return_nodes={'features.35': 'relu5_4'})
+        feature_level = str(self.config.generator.get('vgg_feature_level', 35))
+        self.__dict__['vgg'] = create_feature_extractor(vgg, return_nodes={'features.' + feature_level: 'feature_layer'})
 
         return generator, discriminator
     

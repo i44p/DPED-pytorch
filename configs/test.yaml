@@ -20,6 +20,7 @@ model:
         w_total_variation: 400.0
         blur_sigma: 3
         blur_kernel_size: 21
+    vgg_feature_layer: 35
   discriminator:
     module: modules.models.discriminator.DPEDDiscriminator
     lr_factor: 0.5
