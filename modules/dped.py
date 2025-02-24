@@ -26,10 +26,10 @@ class DPEDModel(nn.Module):
     def _prepare_models(self):
         
         generator = import_class(self.config.model.generator.module)().to(self.device)
-        generator.train(True)
+        generator.eval()
 
         discriminator = import_class(self.config.model.discriminator.module)().to(self.device)
-        discriminator.train(True)
+        discriminator.eval()
 
         vgg = vgg19(weights=VGG19_Weights.IMAGENET1K_V1).to(self.device)
         vgg.eval()
@@ -77,9 +77,14 @@ class DPEDModel(nn.Module):
         return losses
     
     def _discriminator_pass(self, model_input, target):
-        with torch.no_grad():
-            fake = self.grayscale(self.generator(model_input))
-            real = self.grayscale(target)
+        self.discriminator.train(True)
+        self.discriminator.requires_grad_(True)
+        self.generator.eval()
+        self.generator.requires_grad_(False)
+
+        real = self.grayscale(target)
+        fake = self.grayscale(self.generator(model_input))
+            
 
         # branchless fake/real condition, mix per-image values
         batch = target.shape[0]
@@ -101,6 +106,11 @@ class DPEDModel(nn.Module):
         return loss
     
     def _generator_pass(self, model_input, target):
+        self.discriminator.eval()
+        self.discriminator.requires_grad_(False)
+        self.generator.train(True)
+        self.generator.requires_grad_(True)
+
         output = self.generator(model_input)
         generator_loss, other = self.criterion(output, target, self.discriminator, self.vgg)
         

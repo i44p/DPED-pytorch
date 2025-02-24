@@ -100,8 +100,7 @@ class DPEDLoss(torch.nn.Module):
         batch = output.shape[0]
         device = output.device
 
-        with torch.no_grad():
-            discriminator_output = discriminator(self.grayscale(output))
+        discriminator_output = discriminator(self.grayscale(output))
 
         discriminator_target = torch.zeros(batch, dtype=torch.long, device=device)
 
