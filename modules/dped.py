@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torchvision.transforms import Grayscale
+from torchvision.models import vgg19, VGG19_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
 from safetensors.torch import load_model
 
@@ -30,7 +31,7 @@ class DPEDModel(nn.Module):
         discriminator = import_class(self.config.model.discriminator.module)().to(self.device)
         discriminator.train(True)
 
-        vgg = torch.hub.load('pytorch/vision', 'vgg19', pretrained=True).to(self.device)
+        vgg = vgg19(weights=VGG19_Weights.IMAGENET1K_V1).to(self.device)
         vgg.eval()
         vgg.requires_grad_(False)
         feature_level = str(self.config.model.generator.get('vgg_feature_level', 35))
