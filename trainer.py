@@ -20,6 +20,12 @@ class Trainer:
         if resume_path:
             load_model(self.model, resume_path, device=self.device)
             print(f"Loaded the checkpoint from {resume_path}!")
+        
+        self.end_epoch = self.config.trainer.get("end_epoch", 1)
+        self.end_step = self.config.trainer.get("end_step", 0)
+
+        self.checkpoint_step = self.config.trainer.get("checkpoint_step", 0)
+        self.checkpoint_epoch = self.config.trainer.get("checkpoint_epoch", 0)
 
         self.dataloader = self.prepare_dataloader()
 
@@ -54,18 +60,46 @@ class Trainer:
             project=self.config.evaluation.wandb_project,
             config=dict(self.config)
         )
+    
+    def post_step(self, losses):
+        if self.checkpoint_step and self.global_step > 0:
+            if self.global_step % self.checkpoint_step == 0:
+                self.checkpoint()
+
+        if self.use_wandb:
+            report = {}
+            template = "train/{}"
+            for k, loss in losses.items():
+                report[template.format(k)] = loss
+
+            self.wandb_run.log(report)
+
+        if self.end_step:
+            if self.global_step >= self.end_step:
+                self.do_train = False
+    
+    def post_epoch(self):
+        if self.checkpoint_epoch:
+                if (self.current_epoch + 1) % self.checkpoint_epoch == 0:
+                    self.checkpoint()
+
+        if self.end_epoch:
+            if (self.current_epoch + 1) >= self.end_epoch:
+                self.do_train = False
+    
+    def end():
+        save_path = self.config.trainer.get("save_path", "checkpoint.safetensors")
+        if save_path:
+            self.save_model(save_path)
+        
+        if self.use_wandb:
+            wandb.finish()
 
     def train(self):
-        self.end_epoch = self.config.trainer.get("end_epoch", 1)
-        self.end_step = self.config.trainer.get("end_step", 0)
-
-        checkpoint_step = self.config.trainer.get("checkpoint_step", 0)
-        checkpoint_epoch = self.config.trainer.get("checkpoint_epoch", 0)
-
         self.current_epoch = 0
         self.global_step = 0
 
-        do_train = True
+        self.do_train = True
         epoch_bar = trange(self.end_epoch)
         for self.current_epoch in epoch_bar:
             epoch_bar.set_description(f"Epoch: {self.current_epoch}")
@@ -88,42 +122,18 @@ class Trainer:
                 stat_str = ' '.join([f'{k} {loss:0.4f}' for k, loss in losses.items()])
                 step_bar.set_postfix_str(stat_str)
 
-                if checkpoint_step and self.global_step > 0:
-                    if self.global_step % checkpoint_step == 0:
-                        self.checkpoint()
+                self.post_step(losses)
 
-                if self.use_wandb:
-                    report = {}
-                    template = "train/{}"
-                    for k, loss in losses.items():
-                        report[template.format(k)] = loss
-        
-                    self.wandb_run.log(report)
-
-                if self.end_step:
-                    if self.global_step >= self.end_step:
-                        do_train = False
-                        break
+                if not self.do_train:
+                    break
                 
                 self.global_step += 1
 
-            if checkpoint_epoch:
-                if (self.current_epoch + 1) % checkpoint_epoch == 0:
-                    self.checkpoint()
+            self.post_epoch()
 
-            if self.end_epoch:
-                if (self.current_epoch + 1) >= self.end_epoch:
-                    do_train = False
-                    break
-            
-            if not do_train:
+            if not self.do_train:
                 break
             
             self.current_epoch += 1
 
-        save_path = self.config.trainer.get("save_path", "")
-        if save_path:
-            self.save_model(save_path)
-        
-        if self.use_wandb:
-            wandb.finish()
+        self.end()
