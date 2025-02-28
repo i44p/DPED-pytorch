@@ -94,7 +94,7 @@ class Trainer:
 
                 if self.use_wandb:
                     report = {}
-                    template = "train/{}_loss"
+                    template = "train/{}"
                     for k, loss in losses.items():
                         report[template.format(k)] = loss
         

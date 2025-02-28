@@ -68,8 +68,8 @@ class DPEDModel(nn.Module):
         discriminator_loss = self._discriminator_pass(model_input, target)
         generator_loss, other = self._generator_pass(model_input, target)
         
-        losses['discrim'] = discriminator_loss.item()
-        losses['generator'] = generator_loss.item()
+        losses['discrim_loss'] = discriminator_loss.item()
+        losses['generator_loss'] = generator_loss.item()
 
         for k, loss in other.items():
             losses[k] = loss.mean().item()

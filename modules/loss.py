@@ -82,10 +82,10 @@ class DPEDLoss(torch.nn.Module):
         loss = color_loss + texture_loss + content_loss + total_variation_loss
 
         other = {
-            "color": color_loss,
-            "texture": texture_loss,
-            "content": content_loss,
-            "tv": total_variation_loss,
+            "color_loss": color_loss,
+            "texture_loss": texture_loss,
+            "content_loss": content_loss,
+            "tv_loss": total_variation_loss,
         }
 
         return loss, other
