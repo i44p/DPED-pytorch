@@ -26,6 +26,7 @@ class Trainer:
 
         self.checkpoint_step = self.config.trainer.get("checkpoint_step", 0)
         self.checkpoint_epoch = self.config.trainer.get("checkpoint_epoch", 0)
+        self.checkpoint_name = self.config.trainer.get("checkpoint_name", "checkpoint")
 
         self.dataloader = self.prepare_dataloader()
 
@@ -41,7 +42,7 @@ class Trainer:
         return dataset.get_dataloader()
 
     def checkpoint(self, path: pathlib.Path = None):
-        name = f'checkpoint-epoch-{self.current_epoch}-step-{self.global_step}.safetensors'
+        name = f'{self.checkpoint_name}-epoch-{self.current_epoch}-step-{self.global_step}.safetensors'
         if path:
             path = pathlib.Path(path)
         else:

@@ -2,6 +2,7 @@ trainer:
   resume_path:
   save_path: checkpoints/test.safetensors
   checkpoint_path: checkpoints/
+  checkpoint_name: checkpoint
   checkpoint_epoch: 1        # checkpoint every n epochs
   checkpoint_step: 500       # 0: don't checkpoint
   end_step: 100
