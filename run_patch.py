@@ -24,12 +24,14 @@ config = OmegaConf.load(args.config)
 model = DPEDModel(config, 'cpu')
 load_model(model, args.model)
 
-@torch.no_grad
+@torch.inference_mode()
 def infer():
     img = data.utils.load_image(args.input_image, min_=0).unsqueeze(0)
 
-    out_img = model.generator(img).squeeze()
+    out_img = (model.generator(img)).clamp(0, 1)
 
+    out_img = out_img.squeeze()
     data.utils.save_image(out_img, args.output_image, min_=0)
 
-infer()
+if __name__ == '__main__':
+    infer()
