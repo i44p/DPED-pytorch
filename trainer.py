@@ -59,7 +59,7 @@ class Trainer:
     def init_wandb(self):
         return wandb.init(
             project=self.config.evaluation.wandb_project,
-            config=dict(self.config)
+            config=OmegaConf.to_container(self.config)
         )
     
     def post_step(self, losses):
