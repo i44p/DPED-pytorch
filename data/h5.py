@@ -6,7 +6,7 @@ from PIL import Image
 
 from pathlib import Path
 
-class DPEDPatchDataset(Dataset):
+class H5Dataset(Dataset):
     def __init__(self, path: Path, input_label, target_label, config):
         self.path = Path(path)
         self.input_label = input_label
