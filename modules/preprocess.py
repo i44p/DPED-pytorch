@@ -23,10 +23,10 @@ class DPEDProcessor:
         return Image.fromarray(np.squeeze(self.numpy(batch)))
     
     def from_numpy(self, batch: np.ndarray) -> torch.Tensor:
-        return self.encode(torch.from_numpy(batch))
+        return self.encode(self.permute_pil_to_tensor(torch.from_numpy(batch)))
     
     def numpy(self, batch: torch.Tensor) -> np.ndarray:
-        decoded = self.decode(batch)
+        decoded = self.decode(self.permute_tensor_to_pil(batch.clamp(self.min, self.max)))
         return decoded.detach().round().to(torch.uint8).cpu().numpy()
     
     @staticmethod
@@ -38,11 +38,9 @@ class DPEDProcessor:
         return einops.rearrange(batch, "b c h w -> b h w c")
     
     def encode(self, batch):
-        batch = self.permute_pil_to_tensor(batch)
         return self.normalize_batch(batch)
     
     def decode(self, batch):
-        batch = self.permute_tensor_to_pil(batch.clamp(self.min, self.max))
         return self.denormalize_batch(batch)
     
     def normalize_batch(self, batch: torch.Tensor) -> torch.Tensor:

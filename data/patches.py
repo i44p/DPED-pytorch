@@ -1,7 +1,7 @@
 import torch
 import numpy as np
+import einops
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms.functional import pil_to_tensor
 from PIL import Image
 
 from pathlib import Path
@@ -24,7 +24,10 @@ class DPEDPatchDataset(Dataset):
         input_patch = np.asarray(Image.open(self.path / self.input_label / f"{idx}.jpg"))
         target_patch = np.asarray(Image.open(self.path / self.target_label / f"{idx}.jpg"))
 
-        return torch.from_numpy(input_patch.copy()), torch.from_numpy(target_patch.copy())
+        return (
+            einops.rearrange(torch.from_numpy(input_patch.copy()), "b h w c -> b c h w"),
+            einops.rearrange(torch.from_numpy(target_patch.copy()), "b h w c -> b c h w")
+        )
 
     def get_dataloader(self):
         dataloader = DataLoader(
