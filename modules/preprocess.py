@@ -20,7 +20,7 @@ class DPEDProcessor:
         return self.from_numpy(np.expand_dims(np.asarray(image).copy(), axis=0))
     
     def pil(self, batch: torch.Tensor) -> Image.Image:
-        return Image.fromarray(self.numpy(batch))
+        return Image.fromarray(np.squeeze(self.numpy(batch)))
     
     def from_numpy(self, batch: np.ndarray) -> torch.Tensor:
         return self.encode(torch.from_numpy(batch))

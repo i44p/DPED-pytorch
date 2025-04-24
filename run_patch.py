@@ -6,9 +6,8 @@ from PIL import Image
 
 from omegaconf import OmegaConf
 
-import data.utils
-
 from modules.dped import DPEDModel
+from modules.preprocess import DPEDProcessor
 
 parser = argparse.ArgumentParser()
 
@@ -21,17 +20,19 @@ args = parser.parse_args()
 
 config = OmegaConf.load(args.config)
 
+processor = DPEDProcessor(**config.model.preprocessor.args)
+
 model = DPEDModel(config, 'cpu')
 load_model(model, args.model)
 
+
 @torch.inference_mode()
 def infer():
-    img = data.utils.load_image(args.input_image, min_=0).unsqueeze(0)
+    img = processor.from_pil(Image.open(args.input_image))
 
-    out_img = (model.generator(img)).clamp(0, 1)
+    out_img = model.generator(img)
 
-    out_img = out_img.squeeze()
-    data.utils.save_image(out_img, args.output_image, min_=0)
+    processor.pil(out_img).save(args.output_image)
 
 if __name__ == '__main__':
     infer()
