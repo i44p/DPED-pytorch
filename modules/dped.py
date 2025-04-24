@@ -22,6 +22,10 @@ class DPEDModel(nn.Module):
 
         self.cross_entropy = nn.CrossEntropyLoss(reduction='none')
         self.grayscale = Grayscale()
+
+        self.preprocessor = import_class(self.config.model.preprocessor.module)(
+            **self.config.model.preprocessor.args
+        )
         
     def _prepare_models(self):
         
@@ -64,6 +68,9 @@ class DPEDModel(nn.Module):
     
     def forward(self, model_input, target):
         losses = {}
+        
+        model_input = self.preprocessor.encode(model_input)
+        target = self.preprocessor.encode(target)
         
         discriminator_loss = self._discriminator_pass(model_input, target)
         generator_loss, other = self._generator_pass(model_input, target)

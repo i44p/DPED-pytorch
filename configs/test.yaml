@@ -25,10 +25,11 @@ model:
   discriminator:
     module: modules.models.discriminator.DPEDDiscriminator
     lr_factor: 0.5
-  
-  image_normalization:
-    min: 0
-    max: 1
+  preprocessor:
+    module: modules.preprocess.DPEDProcessor
+    args:
+      norm_min: 0
+      norm_max: 1
 
 hyperparameters:
   optimizer:
