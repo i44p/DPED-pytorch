@@ -1,4 +1,5 @@
 import torch
+import einops
 import numpy as np
 from PIL import Image
 
@@ -16,7 +17,7 @@ class DPEDProcessor:
         self._denorm_mult = 255 / (self.max - self.min)
     
     def from_pil(self, image: Image.Image) -> torch.Tensor:
-        return self.from_numpy(np.asarray(image).copy())
+        return self.from_numpy(np.expand_dims(np.asarray(image).copy(), axis=0))
     
     def pil(self, batch: torch.Tensor) -> Image.Image:
         return Image.fromarray(self.numpy(batch))
@@ -30,11 +31,11 @@ class DPEDProcessor:
     
     @staticmethod
     def permute_pil_to_tensor(batch: torch.Tensor) -> torch.Tensor:
-        return batch.permute(0, 3, 1, 2)
+        return einops.rearrange(batch, "b h w c -> b c h w")
 
     @staticmethod
     def permute_tensor_to_pil(batch: torch.Tensor) -> torch.Tensor:
-        return batch.permute(0, 2, 3, 1)
+        return einops.rearrange(batch, "b c h w -> b h w c")
     
     def encode(self, batch):
         batch = self.permute_pil_to_tensor(batch)
