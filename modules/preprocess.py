@@ -42,7 +42,7 @@ class DPEDProcessor:
         return self.normalize_batch(batch)
     
     def decode(self, batch):
-        batch = self.permute_tensor_to_pil(batch)
+        batch = self.permute_tensor_to_pil(batch.clamp(self.min, self.max))
         return self.denormalize_batch(batch)
     
     def normalize_batch(self, batch: torch.Tensor) -> torch.Tensor:

@@ -30,7 +30,7 @@ load_model(model, args.model)
 def infer():
     img = processor.from_pil(Image.open(args.input_image))
 
-    out_img = model.generator(img)
+    out_img = model.generator(img).clamp(0, 1)
 
     processor.pil(out_img).save(args.output_image)
 
