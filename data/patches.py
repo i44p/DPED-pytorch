@@ -25,8 +25,8 @@ class DPEDPatchDataset(Dataset):
         target_patch = np.asarray(Image.open(self.path / self.target_label / f"{idx}.jpg"))
 
         return (
-            einops.rearrange(torch.from_numpy(input_patch.copy()), "b h w c -> b c h w"),
-            einops.rearrange(torch.from_numpy(target_patch.copy()), "b h w c -> b c h w")
+            einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
+            einops.rearrange(torch.from_numpy(target_patch.copy()), "h w c -> c h w")
         )
 
     def get_dataloader(self):
