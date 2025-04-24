@@ -88,7 +88,7 @@ class Trainer:
             if (self.current_epoch + 1) >= self.end_epoch:
                 self.do_train = False
     
-    def end():
+    def end(self):
         save_path = self.config.trainer.get("save_path", "checkpoint.safetensors")
         if save_path:
             self.save_model(save_path)
