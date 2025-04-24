@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 
 
-class DPEDProcessor(torch.nn.Module):
+class DPEDProcessor:
     def __init__(
         self,
         norm_min,
