@@ -25,8 +25,8 @@ def load_dped(config_path, model_path):
 
 
 def refresh(config_path, model_path):
-    config_path = Path(config_path).parent
-    model_path = Path(model_path).parent
+    config_path = Path(config_path)
+    model_path = Path(model_path)
     configs = list(config_path.glob("**/*.yaml"))
     models = list(model_path.glob("**/*.safetensors"))
     return models, configs
@@ -51,8 +51,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("model")
-    parser.add_argument("config")
+    parser.add_argument("models")
+    parser.add_argument("configs")
 
     args = parser.parse_args()
     models, configs = refresh(args.config, args.model)
