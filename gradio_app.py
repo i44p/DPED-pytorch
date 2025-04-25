@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument("configs")
 
     args = parser.parse_args()
-    models, configs = refresh(args.config, args.model)
+    models, configs = refresh(args.configs, args.models)
 
     app = gr.Interface(
         interface,
