@@ -36,7 +36,9 @@ def refresh(config_path, model_path):
 def infer(model, img, processor):
     img = processor.from_pil(img)
 
-    out_img = model.generator(img)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    out_img = model.generator(img.to(device))
 
     return processor.pil(out_img)
 
