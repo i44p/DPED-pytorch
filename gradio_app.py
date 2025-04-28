@@ -47,7 +47,7 @@ class DPED:
         self.compiled_model = torch.compile(self.model)
     
     def set_autocast_mode(self, mode):
-        self._use_autocast = mode
+        self._use_autocast = bool(mode)
     
     @torch.inference_mode()
     def infer(self, img):
