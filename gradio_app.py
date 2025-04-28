@@ -25,6 +25,7 @@ class DPED:
 
         self.loaded_config = ""
         self.loaded_model = ""
+        self.set_autocast_mode(True)
 
         self.load_config(config_path)
         self.load_model(model_path)
@@ -45,14 +46,18 @@ class DPED:
         
         self.compiled_model = torch.compile(self.model)
     
+    def set_autocast_mode(self, mode):
+        self._use_autocast = mode
+    
     @torch.inference_mode()
     def infer(self, img):
         img = self.processor.from_pil(img)
 
-        if hasattr(self, "compiled_model"):
-            out_img = self.compiled_model.generator(img.to(self.device))
-        else:
-            out_img = self.model.generator(img.to(self.device))
+        with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
+            if hasattr(self, "compiled_model"):
+                out_img = self.compiled_model.generator(img.to(self.device))
+            else:
+                out_img = self.model.generator(img.to(self.device))
 
         return self.processor.pil(out_img)
     
@@ -93,9 +98,12 @@ if __name__ == '__main__':
             with gr.Column():
                 model_dropdown = gr.Dropdown(models, label="Model", value=models[0], interactive=True)
                 config_dropdown = gr.Dropdown(configs, label="Config", value=configs[0], interactive=True)
+                use_autocast = gr.Checkbox(label="Autocast the model to fp16", value=True)
+            
         
         model_dropdown.change(dped_model.load_model, inputs=model_dropdown)
         config_dropdown.change(dped_model.load_config, inputs=config_dropdown)
+        use_autocast.change(dped_model.set_autocast_mode, inputs=use_autocast)
 
         with gr.Row(equal_height=True):
             input_image = gr.Image(label="Input")
