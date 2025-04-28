@@ -98,7 +98,7 @@ if __name__ == '__main__':
             with gr.Column():
                 model_dropdown = gr.Dropdown(models, label="Model", value=models[0], interactive=True)
                 config_dropdown = gr.Dropdown(configs, label="Config", value=configs[0], interactive=True)
-                use_autocast = gr.Checkbox(label="Autocast the model to fp16", value=False)
+                use_autocast = gr.Checkbox(label="Autocast the model to fp16", value='cuda' in dped_model.device)
             
         
         model_dropdown.change(dped_model.load_model, inputs=model_dropdown)
