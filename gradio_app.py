@@ -45,8 +45,6 @@ class DPED:
         if self.loaded_model != model_path:
             load_model(self.model, model_path)
             self.loaded_model = model_path
-        
-        self.compiled_model = torch.compile(self.model)
     
     def set_autocast_mode(self, mode):
         self._use_autocast = bool(mode)
@@ -56,10 +54,7 @@ class DPED:
         img = self.processor.from_pil(img)
 
         with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
-            if hasattr(self, "compiled_model"):
-                out_img = self.compiled_model.generator(img.to(self.device))
-            else:
-                out_img = self.model.generator(img.to(self.device))
+            out_img = self.model.generator(img.to(self.device))
 
         return self.processor.pil(out_img)
     
