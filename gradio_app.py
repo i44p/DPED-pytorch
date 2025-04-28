@@ -10,44 +10,50 @@ from omegaconf import OmegaConf
 from class_utils import import_class
 
 
-def load_dped(config_path, model_path):
-    config = OmegaConf.load(config_path)
+class DPED:
+    def __init__(self, config_path, model_path) -> None:
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    processor = import_class(config.model.preprocessor.module)(
-        **config.model.preprocessor.args
-    )
+        self.loaded_config = ""
+        self.loaded_model = ""
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.load_config(config_path)
+        self.load_model(model_path)
+    
+    def load_config(self, config_path):
+        if self.loaded_config != config_path:
+            self.config = OmegaConf.load(config_path)
+            self.processor = import_class(self.config.model.preprocessor.module)(
+                **self.config.model.preprocessor.args
+            )
+            self.model = import_class(self.config.model.module)(self.config, self.device)
+            self.loaded_config = config_path
+        
+    def load_model(self, model_path):
+        if self.loaded_model != model_path:
+            load_model(self.model, model_path)
+            self.loaded_model = model_path
+        
+        self.compiled_model = torch.compile(self.model)
+    
+    @torch.inference_mode()
+    def infer(self, img):
+        img = self.processor.from_pil(img)
 
-    model = import_class(config.model.module)(config, device)
-    load_model(model, model_path)
-    return model, processor
+        if hasattr(self, "compiled_model"):
+            out_img = self.compiled_model.generator(img.to(self.device))
+        else:
+            out_img = self.model.generator(img.to(self.device))
 
+        return self.processor.pil(out_img)
+    
 
-def refresh(config_path, model_path):
+def get_model_config_lists(config_path, model_path):
     config_path = Path(config_path)
     model_path = Path(model_path)
     configs = list(config_path.glob("**/*.yaml"))
     models = list(model_path.glob("**/*.safetensors"))
     return models, configs
-
-
-@torch.inference_mode()
-def infer(model, img, processor):
-    img = processor.from_pil(img)
-
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    out_img = model.generator(img.to(device))
-
-    return processor.pil(out_img)
-
-
-def interface(model_path, config_path, image):
-    model, processor = load_dped(config_path, model_path)
-
-    return infer(model, image, processor)
-
 
 if __name__ == '__main__':
 
@@ -57,15 +63,37 @@ if __name__ == '__main__':
     parser.add_argument("configs")
 
     args = parser.parse_args()
-    models, configs = refresh(args.configs, args.models)
+    models, configs = get_model_config_lists(args.configs, args.models)
 
-    app = gr.Interface(
-        interface,
-        [
-            gr.Dropdown(models, label="Model"),
-            gr.Dropdown(configs, label="Config"),
-            gr.Image()
-        ],
-        outputs='image'
-    )
-    app.launch(server_name="0.0.0.0", server_port=7860, share=False)   
+    model_path, config_path = models[0], configs[0]
+    
+    dped_model = DPED(config_path, model_path)
+
+    with gr.Blocks() as app:
+
+        with gr.Row():
+
+            gr.Markdown("""
+            # DPED-pytorch
+            ## Как пользоваться
+            1. Выберите веса модели из списка доступных, например kvadra-1-epoch-4-step-5020.safetensors. Эта модель обучалась 5 эпох (всего 5020 шагов)
+            2. Выберите соответствующий файл конфигурации, то есть для модели выше это будет что-то вроде kvadra-1.yaml
+            3. Загрузите изображение, сделанное на планшет KVADRA_T.
+            """)
+
+            with gr.Column():
+                model_dropdown = gr.Dropdown(models, label="Model", value=models[0], interactive=True)
+                config_dropdown = gr.Dropdown(configs, label="Config", value=configs[0], interactive=True)
+        
+        model_dropdown.change(dped_model.load_model, inputs=model_dropdown)
+        config_dropdown.change(dped_model.load_config, inputs=config_dropdown)
+
+        with gr.Row(equal_height=True):
+            input_image = gr.Image(label="Input")
+            output_image = gr.Image(label="Output")
+        
+        button = gr.Button("Process!", variant="primary")
+
+        button.click(dped_model.infer, inputs=input_image, outputs=output_image)
+        
+    app.launch(server_name="0.0.0.0", server_port=7860, share=False)
