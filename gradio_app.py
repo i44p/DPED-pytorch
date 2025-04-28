@@ -1,8 +1,17 @@
 import argparse
+import os
 
 from pathlib import Path
 
 import torch
+
+torch.set_num_threads(os.cpu_count())
+
+torch.backends.cudnn.benchmark = True
+
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
 import gradio as gr
 from safetensors.torch import load_model
 from omegaconf import OmegaConf
