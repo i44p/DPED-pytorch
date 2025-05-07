@@ -7,7 +7,7 @@ from PIL import Image
 from pathlib import Path
 
 class DPEDPatchDataset(Dataset):
-    def __init__(self, path: Path, input_label, target_label):
+    def __init__(self, path: Path, input_label, target_label, batch_size):
         self.path = Path(path)
         self.input_label = input_label
         self.target_label = target_label
