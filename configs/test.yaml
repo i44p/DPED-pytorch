@@ -48,13 +48,15 @@ dataset:
 evaluation:
   frequency_steps: 10
   frequency_epochs: 1
-  batch_sample_size: 5
+  batch_size: 5
+  metrics:
+    - modules.eval.psnr.PSNREvaluator
   dataset:
     module: data.patches.DPEDPatchDataset
     args:
-      path: dataset/dped/blackberry/test_data/patches/blackberry/
+      path: dataset/test
       input_label: blackberry
       target_label: canon
-  use_wandb: false
+  use_wandb: true
   wandb_project: "test"
   

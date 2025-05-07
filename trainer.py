@@ -28,7 +28,13 @@ class Trainer:
         self.checkpoint_epoch = self.config.trainer.get("checkpoint_epoch", 0)
         self.checkpoint_name = self.config.trainer.get("checkpoint_name", "checkpoint")
 
+        self.eval_steps = self.config.evaluation.get("frequency_steps", 0)
+        self.eval_epochs = self.config.evaluation.get("frequency_epochs", 0)
+        self.eval_batch_size = self.config.evaluation.get("batch_size", 1)
+
         self.dataloader = self.prepare_dataloader()
+
+        self.evaluators = self.prepare_evaluators()
 
         self.use_wandb = self.config.evaluation.get('use_wandb', False)
         if self.use_wandb:
@@ -37,9 +43,29 @@ class Trainer:
     def prepare_dataloader(self):
         dataset = import_class(self.config.dataset.module)(
             **self.config.dataset.args,
-            config=self.config,
+            batch_size = self.config.hyperparameters.batch_size,
         )
         return dataset.get_dataloader()
+    
+    def prepare_evaluation_dataloader(self):
+        dataset = import_class(self.config.evaluation.dataset.module)(
+            **self.config.evaluation.dataset.args,
+            batch_size = self.config.evaluation.batch_size,
+        )
+        return dataset.get_dataloader()
+    
+    def prepare_evaluators(self):
+        evaluators = []
+        dataloader = self.prepare_evaluation_dataloader()
+
+        for evaluator_str in self.config.evaluation.metrics:
+            evaluator = import_class(evaluator_str)(
+                dataloader,
+                device=self.device
+            )
+            evaluators.append(evaluator)
+        
+        return evaluators
 
     def checkpoint(self, path: pathlib.Path = None):
         name = f'{self.checkpoint_name}-epoch-{self.current_epoch}-step-{self.global_step}.safetensors'
@@ -67,11 +93,19 @@ class Trainer:
             if self.global_step % self.checkpoint_step == 0:
                 self.checkpoint()
 
+        metrics = {}
+
+        if self.eval_steps and self.global_step > 0:
+            if self.global_step % self.eval_steps == 0:
+                metrics = self.eval()
+
         if self.use_wandb:
             report = {}
-            template = "train/{}"
             for k, loss in losses.items():
-                report[template.format(k)] = loss
+                report[f"train/{k}"] = loss
+
+            for k, metric in metrics.items():
+                report[f"eval_step/{k}"] = metric
 
             self.wandb_run.log(report)
 
@@ -81,12 +115,41 @@ class Trainer:
     
     def post_epoch(self):
         if self.checkpoint_epoch:
-                if (self.current_epoch + 1) % self.checkpoint_epoch == 0:
-                    self.checkpoint()
+            if (self.current_epoch + 1) % self.checkpoint_epoch == 0:
+                self.checkpoint()
+
+        metrics = {}
+
+        if self.eval_epochs:
+            if self.current_epoch % self.eval_epochs == 0:
+                metrics = self.eval()
+
+        if self.use_wandb:
+            report = {}
+            for k, metric in metrics.items():
+                report[f"eval_epoch/{k}"] = metric
+
+            if report:
+                self.wandb_run.log(report)
 
         if self.end_epoch:
             if (self.current_epoch + 1) >= self.end_epoch:
                 self.do_train = False
+    
+    def eval(self):
+        metrics = {}
+
+        print()
+        eval_bar = tqdm(self.evaluators, desc='Running evaluation...')
+        for evaluator in eval_bar:
+            eval_bar.set_description(f"{evaluator.name}")
+            metrics[evaluator.name] = evaluator(self.model)
+        
+        print("\n\n")
+        print(' '.join(f"{name}: {metric}" for name, metric in metrics.items()))
+        print()
+
+        return metrics
     
     def end(self):
         save_path = self.config.trainer.get("save_path", "checkpoint.safetensors")
