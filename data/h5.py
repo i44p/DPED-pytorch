@@ -7,11 +7,11 @@ from PIL import Image
 from pathlib import Path
 
 class H5Dataset(Dataset):
-    def __init__(self, path: Path, input_label, target_label, config):
+    def __init__(self, path: Path, input_label, target_label, batch_size):
         self.path = Path(path)
         self.input_label = input_label
         self.target_label = target_label
-        self.config = config
+        self.batch_size = batch_size
         
         assert self.path.is_file()
 
@@ -32,7 +32,7 @@ class H5Dataset(Dataset):
     def get_dataloader(self):
         dataloader = DataLoader(
             self,
-            batch_size = self.config.hyperparameters.batch_size,
+            batch_size = self.batch_size,
             shuffle=True,
             num_workers=8,
             prefetch_factor=3,
