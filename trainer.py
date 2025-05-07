@@ -147,7 +147,7 @@ class Trainer:
             eval_bar.set_description(f"{evaluator.name}")
             metrics[evaluator.name] = evaluator(self.model)
         
-        torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
         
         print("\n\n")
         print(' '.join(f"{name}: {metric}" for name, metric in metrics.items()))
