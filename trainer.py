@@ -139,11 +139,15 @@ class Trainer:
     def eval(self):
         metrics = {}
 
+        torch.cuda.empty_cache()
+
         print()
         eval_bar = tqdm(self.evaluators, desc='Running evaluation...')
         for evaluator in eval_bar:
             eval_bar.set_description(f"{evaluator.name}")
             metrics[evaluator.name] = evaluator(self.model)
+        
+        torch.cuda.empty_cache()
         
         print("\n\n")
         print(' '.join(f"{name}: {metric}" for name, metric in metrics.items()))
