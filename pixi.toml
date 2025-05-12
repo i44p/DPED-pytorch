@@ -13,9 +13,13 @@ pytorch-gpu = "*"
 [feature.cpu.dependencies]
 pytorch-cpu = "*"
 
+[feature.lab.dependencies]
+jupyterlab = ">=4.4.2,<5"
+
 [environments]
 cpu = ["cpu"]
 default = ["gpu"]
+dev = ["cpu", "lab"]
 
 [dependencies]
 einops = ">=0.8.0,<0.9"
