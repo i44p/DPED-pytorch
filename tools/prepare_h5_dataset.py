@@ -72,9 +72,9 @@ class CommonDataset(torch.utils.data.Dataset):
         input_img = Image.open(input_fp)
         target_img = Image.open(target_fp)
 
-        H, input_img = self.slicer.intersect_single(input_img, target_img)
+        H, warped_target_img = self.slicer.intersect_single(input_img, target_img)
 
-        return input_img.squeeze(), pil2torch(target_img)
+        return pil2torch(input_img), warped_target_img.squeeze(), 
     
     def fetch_filename(self, path: pathlib.Path, idx):
         pattern = f'{idx:06d}.*'
@@ -85,9 +85,6 @@ class CommonDataset(torch.utils.data.Dataset):
 
 def pil2torch(img: Image.Image) -> torch.Tensor:
     return rearrange(torch.from_numpy(np.asarray(img).copy()).float() / 255, 'h w c -> c h w')
-
-def torch2np(img: torch.Tensor):
-    return rearrange(img.numpy(), 'b c h w -> b h w c')
 
 
 def extend_dataset(dataset, batch):
@@ -134,8 +131,8 @@ def main(args):
             # kvadra: rgb = raw.postprocess(use_camera_wb=True, output_color=rawpy.ColorSpace(5))
             # apparently kvadra's camera app writes DNGs in XYZ colorspace
 
-            extend_dataset(input_dataset, torch2np(input_batch) * 255)
-            extend_dataset(target_dataset, torch2np(target_batch) * 255)
+            extend_dataset(input_dataset, rearrange(input_batch.numpy(), 'b c h w -> b h w c') * 255)
+            extend_dataset(target_dataset, rearrange(target_batch.numpy(), 'b c h w -> b h w c') * 255)
 
 
 if __name__ == '__main__':

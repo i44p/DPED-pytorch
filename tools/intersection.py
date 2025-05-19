@@ -40,15 +40,16 @@ class Intersection:
         kp = self.get_keypoints(input_data, target_data)[0]
         keypoints_input, keypoints_target = kp['keypoints0'].float(), kp['keypoints1'].float()
 
-        H = self.get_homography(keypoints_input.unsqueeze(0), keypoints_target.unsqueeze(0))
+        H = self.get_homography(keypoints_target.unsqueeze(0), keypoints_input.unsqueeze(0))
 
-        input_torch = rearrange(
-            torch.from_numpy(np.asarray(input_data).copy()).float() / 255,
+        target_torch = rearrange(
+            torch.from_numpy(np.asarray(target_data).copy()).float() / 255,
             'h w c -> c h w'
         )
-        warped_input = self.warp_image(
-            input_torch.unsqueeze(0),
-            H, dsize=(target_data.height, target_data.width)
+        
+        warped_target = self.warp_image(
+            target_torch.unsqueeze(0),
+            H, dsize=(input_data.height, input_data.width)
         )
 
-        return H, warped_input
+        return H, warped_target
