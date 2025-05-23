@@ -88,7 +88,11 @@ def pil2torch(img: Image.Image) -> torch.Tensor:
 
 
 def extend_dataset(dataset, batch):
-    dataset.resize(dataset.shape[0] + batch.shape[0], axis=0)
+    if dataset.shape[0] == 1 and np.all(dataset[0] == 0):
+        dataset.resize(batch.shape[0], axis=0)
+    else:
+        dataset.resize(dataset.shape[0] + batch.shape[0], axis=0)
+
     dataset[-batch.shape[0]:] = batch
 
 def get_datasets(dataset, name, shape, dtype='uint8'):
