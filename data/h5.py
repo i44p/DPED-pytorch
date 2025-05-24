@@ -145,10 +145,10 @@ class H5Dataset(Dataset):
         
         # all samples in the batch are None
         if not filtered_batch:
-            raise RuntimeError(f"\nGot empty batch, can not proceed.")
+            raise RuntimeError(f"\nGot empty batch, can not proceed.\n")
 
         if len(batch) != len(filtered_batch):
-            print(f"\nSome items in the batch are None. Effective batch size: {len(filtered_batch)}")
+            print(f"\nSome items in the batch are None. Effective batch size: {len(filtered_batch)}\n")
         
         inp, target = zip(*filtered_batch)
         
