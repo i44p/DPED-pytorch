@@ -51,7 +51,7 @@ class H5Dataset(Dataset):
             patch_size = 100,
             correlation_threshold = 0.9,
             padding_px=10,
-            guess_limit=1000,
+            guess_limit=2000,
             *args, **kwargs
         ):
         self.path = Path(path)
@@ -107,7 +107,7 @@ class H5Dataset(Dataset):
             corel = corel_statistic
         
         if attempts >= self.guess_limit:
-            raise RuntimeError(f"Failed to find a patch for an image. Dataset index: {idx}")
+            return None
         
         return (
             einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
@@ -132,7 +132,23 @@ class H5Dataset(Dataset):
             shuffle=True,
             num_workers=8,
             prefetch_factor=3,
-            pin_memory=True
+            pin_memory=True,
+            collate_fn=self.collate_fn
         )
         return dataloader
+    
+    @staticmethod
+    def collate_fn(batch):
+        filtered_batch = [sample for sample in batch if sample is not None]
+        
+        # all samples in the batch are None
+        if not filtered_batch:
+            raise RuntimeError(f"Got empty batch, can not proceed.")
+
+        if len(batch) != len(filtered_batch):
+            print(f"Some items in the batch are None. Effective batch size: {len(filtered_batch)}")
+        
+        inp, target = zip(*filtered_batch)
+        
+        return (torch.stack(inp), torch.stack(target))
 
