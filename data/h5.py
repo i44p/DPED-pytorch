@@ -52,10 +52,12 @@ class H5Dataset(Dataset):
             correlation_threshold = 0.9,
             padding_px=10,
             guess_limit=1000,
+            workers=16,
             *args, **kwargs
         ):
         self.path = Path(path)
         self.patch_size = patch_size
+        self.workers = workers
         self.correlation_threshold = correlation_threshold
         self.padding_px = padding_px
         self.guess_limit = guess_limit
@@ -130,7 +132,7 @@ class H5Dataset(Dataset):
             self,
             batch_size = self.batch_size,
             shuffle=True,
-            num_workers=8,
+            num_workers=self.workers,
             prefetch_factor=3,
             pin_memory=True,
             collate_fn=self.collate_fn
