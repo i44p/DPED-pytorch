@@ -17,15 +17,24 @@ class Intersection:
         self.threshold = threshold
     
     @torch.inference_mode()
-    def get_keypoints(self, input: Image.Image, target: Image.Image):
-        images = [input, target]
+    def get_keypoints(self, inputs: list[Image.Image], targets: list[Image.Image]):
+        assert len(inputs) == len(targets), "Inputs and targets must be of the same length"
 
-        inputs = self.processor(images, return_tensors="pt")
-        outputs = self.model(**inputs)
-
-        image_sizes = [[(image.height, image.width) for image in images]]
-        outputs = self.processor.post_process_keypoint_matching(outputs, image_sizes, threshold=self.threshold)
-        return outputs
+        images = []
+        for inp, tgt in zip(inputs, targets):
+            images.append(inp)
+            images.append(tgt)
+        
+        processor_inputs = self.processor(images, return_tensors="pt")
+        outputs = self.model(**processor_inputs)
+        
+        image_sizes = [[(inp.height, inp.width), (tgt.height, tgt.width)] 
+                    for inp, tgt in zip(inputs, targets)]
+        
+        processed_outputs = self.processor.post_process_keypoint_matching(
+            outputs, image_sizes, threshold=self.threshold
+        )
+        return processed_outputs
 
     @torch.inference_mode()
     def get_homography(self, keypoints1, keypoints2):
@@ -37,19 +46,61 @@ class Intersection:
     
     @torch.inference_mode()
     def intersect_single(self, input_data: Image.Image, target_data: Image.Image):
-        kp = self.get_keypoints(input_data, target_data)[0]
-        keypoints_input, keypoints_target = kp['keypoints0'].float(), kp['keypoints1'].float()
+        kps = self.get_keypoints((input_data,), (target_data,))
 
-        H = self.get_homography(keypoints_target.unsqueeze(0), keypoints_input.unsqueeze(0))
+        keypoints_input, keypoints_target = [], []
+        for kp in kps:
+            keypoints_input.append(kp['keypoints0'].float())
+            keypoints_target.append(kp['keypoints1'].float())
+
+        keypoints_input = torch.stack(keypoints_input)
+        keypoints_target = torch.stack(keypoints_target)
+
+        Hs = self.get_homography(keypoints_target, keypoints_input)
 
         target_torch = rearrange(
             torch.from_numpy(np.asarray(target_data).copy()).float() / 255,
             'h w c -> c h w'
-        )
+        ).unsqueeze(0)
         
         warped_target = self.warp_image(
-            target_torch.unsqueeze(0),
-            H, dsize=(input_data.height, input_data.width)
+            target_torch,
+            Hs, dsize=(input_data.height, input_data.width)
         )
 
-        return H, warped_target
+        return Hs[0], warped_target[0]
+    
+    @torch.inference_mode()
+    def intersect(self, input_data: list[Image.Image], target_data: list[Image.Image]):
+        kps = self.get_keypoints(input_data, target_data)
+
+        height, width = input_data[0].height, input_data[0].width
+
+        keypoints_input, keypoints_target = [], []
+        for kp in kps:
+            keypoints_input.append(kp['keypoints0'].float())
+            keypoints_target.append(kp['keypoints1'].float())
+
+        keypoints_input = torch.stack(keypoints_input)
+        keypoints_target = torch.stack(keypoints_target)
+
+        Hs = self.get_homography(keypoints_target, keypoints_input)
+
+        input_torch = torch.stack([
+            rearrange(torch.from_numpy(np.asarray(data).copy()).float(), 'h w c -> c h w') / 255
+                for data in input_data
+            ]
+        )
+
+        target_torch = torch.stack([
+                rearrange(torch.from_numpy(np.asarray(data).copy()).float(), 'h w c -> c h w') / 255
+                for data in target_data
+            ]
+        )
+        
+        warped_targets = self.warp_image(
+            target_torch,
+            Hs, dsize=(height, width)
+        )
+
+        return Hs, warped_targets
