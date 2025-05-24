@@ -121,7 +121,7 @@ class Trainer:
         metrics = {}
 
         if self.eval_epochs:
-            if self.current_epoch % self.eval_epochs == 0:
+            if (self.current_epoch + 1) % self.eval_epochs == 0:
                 metrics = self.eval()
 
         if self.use_wandb:
