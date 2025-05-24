@@ -77,7 +77,7 @@ class H5Dataset(Dataset):
             target_img = d[f"target"][idx]
         
         if np.all(input_img == 0):
-            print(idx)
+            return None
         
         h, w, c = input_img.shape
 
