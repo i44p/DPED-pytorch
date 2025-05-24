@@ -92,7 +92,7 @@ class H5Dataset(Dataset):
             input_patch = self._crop(input_img, y_center, x_center)
             target_patch = self._crop(target_img, y_center, x_center)
 
-            if np.any(input_patch == 0) or np.any(target_patch == 0):
+            if np.std(input_patch) == 0 or np.std(target_patch) == 0:
                 continue
 
             corel_statistic, _ = scipy.stats.pearsonr(
