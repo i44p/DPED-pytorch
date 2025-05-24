@@ -18,7 +18,15 @@ class MSSSIMEvaluator(Evaluator):
     
             output = model.generator(model_input)
             
-            ms_ssim_accumulator += torch.sum(ms_ssim( output, target, data_range=1, size_average=False))
+            ms_ssim_accumulator += torch.sum(ms_ssim(
+                output, target,
+                win_sigma=1.5,
+                win_size=11,
+                K=(0.01, 0.03),
+                data_range=1,
+                size_average=False
+                )
+            )
         
         metric = ms_ssim_accumulator / self.dataloader.batch_size / len(self.dataloader)
         
