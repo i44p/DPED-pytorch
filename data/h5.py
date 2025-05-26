@@ -87,16 +87,12 @@ class H5Dataset(Dataset):
     def __del__(self):
         if self.h5_file is not None:
             self.h5_file.close()
+    
+    def _find_matching_patch(self, input_img, target_img):
+        input_patch = None
+        target_patch = None
 
-    def __getitem__(self, idx):
-        input_img = self.input_dataset[idx]
-        target_img = self.target_dataset[idx]
-        
-        if np.all(input_img == 0):
-            return None
-        
         h, w, c = input_img.shape
-
         corel = 0
         attempts = 0
         while attempts <= self.guess_limit and corel < self.correlation_threshold:
@@ -124,6 +120,17 @@ class H5Dataset(Dataset):
         
         if attempts >= self.guess_limit:
             return None
+
+        return (input_patch, target_patch)
+
+    def __getitem__(self, idx):
+        input_img = self.input_dataset[idx]
+        target_img = self.target_dataset[idx]
+        
+        if np.all(input_img == 0):
+            return None
+
+        input_patch, target_patch = self._find_matching_patch(input_img, target_img)
         
         return (
             einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
