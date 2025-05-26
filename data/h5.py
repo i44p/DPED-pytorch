@@ -51,8 +51,8 @@ class H5Dataset(Dataset):
             patch_size = 100,
             correlation_threshold = 0.9,
             padding_px=10,
-            guess_limit=1000,
-            workers=16,
+            guess_limit=2000,
+            workers=4,
             *args, **kwargs
         ):
         self.path = Path(path)
