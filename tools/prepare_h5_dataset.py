@@ -100,6 +100,7 @@ def get_datasets(dataset, name, shape, dtype='uint8'):
         shape=shape,
         maxshape=(None, h, w, c),
         compression="gzip",
+        chunks=(1, h, w, c),
         compression_opts=5,
         dtype=dtype
         )
