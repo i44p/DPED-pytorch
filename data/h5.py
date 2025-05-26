@@ -79,7 +79,7 @@ class H5Dataset(Dataset):
         return self._len
             
     def _init_dataset(self):
-        if self.dataset is None:
+        if self.h5_file is None:
             self.h5_file = h5.File(self.path, 'r')
             self.input_dataset = self.h5_file["input"]
             self.target_dataset = self.h5_file["target"]
