@@ -99,8 +99,8 @@ class H5Dataset(Dataset):
             x_center = np.random.randint(self.pad, h - self.pad)
             y_center = np.random.randint(self.pad, w - self.pad)
 
-            input_patch = self._crop(input_img, y_center, x_center)
-            target_patch = self._crop(target_img, y_center, x_center)
+            input_patch = self._crop_gray(input_img, y_center, x_center)
+            target_patch = self._crop_gray(target_img, y_center, x_center)
 
             if np.std(input_patch) == 0 or np.std(target_patch) == 0:
                 continue
@@ -143,6 +143,12 @@ class H5Dataset(Dataset):
             y_center - self.patch_size // 2 : y_center + self.patch_size // 2,
             x_center - self.patch_size // 2 : x_center + self.patch_size // 2,
             :,
+        ]
+    
+    def _crop_gray(self, img, y_center, x_center):
+        return img[
+            y_center - self.patch_size // 2 : y_center + self.patch_size // 2,
+            x_center - self.patch_size // 2 : x_center + self.patch_size // 2,
         ]
 
     @staticmethod
