@@ -99,9 +99,9 @@ def get_datasets(dataset, name, shape, dtype='uint8'):
         name,
         shape=shape,
         maxshape=(None, h, w, c),
-        compression="gzip",
+        compression="lzf",
         chunks=(1, h, w, c),
-        compression_opts=5,
+        #compression_opts=5,
         dtype=dtype
         )
 
