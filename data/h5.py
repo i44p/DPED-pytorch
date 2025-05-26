@@ -63,6 +63,11 @@ class H5Dataset(Dataset):
         self.guess_limit = guess_limit
         self.pad = self.patch_size // 2 + self.padding_px
         self.batch_size = batch_size
+
+        self.h5_file = None
+        self.input_dataset = None
+        self.target_dataset = None
+        self._init_dataset()
         
         assert self.path.is_file()
 
@@ -72,11 +77,20 @@ class H5Dataset(Dataset):
 
     def __len__(self):
         return self._len
+            
+    def _init_dataset(self):
+        if self.dataset is None:
+            self.h5_file = h5.File(self.path, 'r')
+            self.input_dataset = self.h5_file["input"]
+            self.target_dataset = self.h5_file["target"]
+    
+    def __del__(self):
+        if self.h5_file is not None:
+            self.h5_file.close()
 
     def __getitem__(self, idx):
-        with h5.File(self.path, 'r') as d:
-            input_img = d[f"input"][idx]
-            target_img = d[f"target"][idx]
+        input_img = self.input_dataset[idx]
+        target_img = self.target_dataset[idx]
         
         if np.all(input_img == 0):
             return None
