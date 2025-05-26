@@ -128,7 +128,10 @@ class H5Dataset(Dataset):
         if np.all(input_img == 0):
             return None
 
-        x_center, y_center = self._find_patch_coords(self._rgb2gray(input_img.astype(float) / 255), target_img)
+        x_center, y_center = self._find_patch_coords(
+            self._rgb2gray(input_img.astype(float) / 255),
+            self._rgb2gray(target_img.astype(float) / 255)
+        )
         
         input_patch = self._crop(input_img, y_center, x_center)
         target_patch = self._crop(target_img, y_center, x_center)
