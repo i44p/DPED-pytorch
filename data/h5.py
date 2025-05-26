@@ -88,9 +88,9 @@ class H5Dataset(Dataset):
         if self.h5_file is not None:
             self.h5_file.close()
     
-    def _find_matching_patch(self, input_img, target_img):
-        input_patch = None
-        target_patch = None
+    def _find_patch_coords(self, input_img, target_img):
+        x_center = None
+        y_center = None
 
         h, w, c = input_img.shape
         corel = 0
@@ -98,8 +98,8 @@ class H5Dataset(Dataset):
         while attempts <= self.guess_limit and corel < self.correlation_threshold:
             attempts += 1
             
-            y_center = np.random.randint(self.pad, h - self.pad)
-            x_center = np.random.randint(self.pad, w - self.pad)
+            x_center = np.random.randint(self.pad, h - self.pad)
+            y_center = np.random.randint(self.pad, w - self.pad)
 
             input_patch = self._crop(input_img, y_center, x_center)
             target_patch = self._crop(target_img, y_center, x_center)
@@ -108,8 +108,8 @@ class H5Dataset(Dataset):
                 continue
 
             corel_statistic, _ = scipy.stats.pearsonr(
-                self._rgb2gray(input_patch.astype(float) / 255),
-                self._rgb2gray(target_patch.astype(float) / 255),
+                input_patch,
+                target_patch,
                 axis=None
             )
 
@@ -121,7 +121,7 @@ class H5Dataset(Dataset):
         if attempts >= self.guess_limit:
             return None
 
-        return (input_patch, target_patch)
+        return (x_center, y_center)
 
     def __getitem__(self, idx):
         input_img = self.input_dataset[idx]
@@ -130,8 +130,11 @@ class H5Dataset(Dataset):
         if np.all(input_img == 0):
             return None
 
-        input_patch, target_patch = self._find_matching_patch(input_img, target_img)
+        x_center, y_center = self._find_patch_coords(self._rgb2gray(input_img.astype(float) / 255), target_img)
         
+        input_patch = self._crop(input_img, y_center, x_center)
+        target_patch = self._crop(target_img, y_center, x_center)
+
         return (
             einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
             einops.rearrange(torch.from_numpy(target_patch.copy()), "h w c -> c h w")
