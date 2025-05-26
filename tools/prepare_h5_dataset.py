@@ -55,8 +55,6 @@ class CommonDataset(torch.utils.data.Dataset):
         assert self.input_path.is_dir()
         assert self.target_path.is_dir()
 
-        self.slicer = intersection.Intersection()
-
         self._len = len(list(self.target_path.iterdir()))
 
     def __len__(self):
@@ -72,9 +70,7 @@ class CommonDataset(torch.utils.data.Dataset):
         input_img = Image.open(input_fp)
         target_img = Image.open(target_fp)
 
-        H, warped_target_img = self.slicer.intersect_single(input_img, target_img)
-
-        return pil2torch(input_img), warped_target_img.squeeze(), 
+        return pil2torch(input_img), pil2torch(target_img), 
     
     def fetch_filename(self, path: pathlib.Path, idx):
         pattern = f'{idx:06d}.*'
@@ -86,9 +82,11 @@ class CommonDataset(torch.utils.data.Dataset):
 def pil2torch(img: Image.Image) -> torch.Tensor:
     return rearrange(torch.from_numpy(np.asarray(img).copy()).float() / 255, 'h w c -> c h w')
 
+def torch2pil(img: torch.Tensor) -> Image.Image:
+    return Image.fromarray(rearrange((img * 255).numpy().astype('uint8'), 'c h w -> h w c'))
 
 def extend_dataset(dataset, batch):
-    if dataset.shape[0] == 1 and np.all(dataset[0] == 0):
+    if np.all(dataset[0] == 0):
         dataset.resize(batch.shape[0], axis=0)
     else:
         dataset.resize(dataset.shape[0] + batch.shape[0], axis=0)
@@ -102,7 +100,7 @@ def get_datasets(dataset, name, shape, dtype='uint8'):
         shape=shape,
         maxshape=(None, h, w, c),
         compression="gzip",
-        compression_opts=3,
+        compression_opts=5,
         dtype=dtype
         )
 
@@ -121,8 +119,10 @@ def main(args):
     )
 
     c, h, w = dataset[0][0].shape
+
+    slicer = intersection.Intersection()
     
-    with h5py.File(args.output_path, "w") as dataset:
+    with h5py.File(args.output_path, "w", libver='latest') as dataset:
 
         input_dataset = get_datasets(dataset, 'input', (args.batch_size, h, w, c))
         target_dataset = get_datasets(dataset, 'target', (args.batch_size, h, w, c))
@@ -132,11 +132,24 @@ def main(args):
             input_batch = batch[0]
             target_batch = batch[1]
 
+            #Hs, warped_target_batch = slicer.intersect(input_batch, target_batch)
+            warped_target_batch = []
+            masked_input_batch = []
+            for inp, tgt in zip(input_batch, target_batch):
+                H, warped_target = slicer.intersect_single(torch2pil(inp), torch2pil(tgt))
+                mask = torch.where(warped_target == 0)
+                masked_input = inp
+                masked_input[mask] = 0
+                warped_target_batch.append(warped_target)
+                masked_input_batch.append(masked_input)
+            warped_target_batch = torch.stack(warped_target_batch)
+            masked_input_batch = torch.stack(masked_input_batch)
+
             # kvadra: rgb = raw.postprocess(use_camera_wb=True, output_color=rawpy.ColorSpace(5))
             # apparently kvadra's camera app writes DNGs in XYZ colorspace
 
-            extend_dataset(input_dataset, rearrange(input_batch.numpy(), 'b c h w -> b h w c') * 255)
-            extend_dataset(target_dataset, rearrange(target_batch.numpy(), 'b c h w -> b h w c') * 255)
+            extend_dataset(input_dataset, rearrange(masked_input_batch.numpy(), 'b c h w -> b h w c') * 255)
+            extend_dataset(target_dataset, rearrange(warped_target_batch.numpy(), 'b c h w -> b h w c') * 255)
 
 
 if __name__ == '__main__':
