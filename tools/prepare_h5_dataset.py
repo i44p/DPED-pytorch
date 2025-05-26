@@ -136,8 +136,14 @@ def main(args):
             #Hs, warped_target_batch = slicer.intersect(input_batch, target_batch)
             warped_target_batch = []
             masked_input_batch = []
-            for inp, tgt in zip(input_batch, target_batch):
-                H, warped_target = slicer.intersect_single(torch2pil(inp), torch2pil(tgt))
+            for idx, (inp, tgt) in enumerate(zip(input_batch, target_batch)):
+                try:
+                    H, warped_target = slicer.intersect_single(torch2pil(inp), torch2pil(tgt))
+                except Exception as e:
+                    print(e.args)
+                    print("INDEX:", batch_idx)
+                    print("SUBINDEX:", idx)
+                    raise e
                 mask = torch.where(warped_target == 0)
                 masked_input = inp
                 masked_input[mask] = 0
