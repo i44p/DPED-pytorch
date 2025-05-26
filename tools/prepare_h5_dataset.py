@@ -143,7 +143,8 @@ def main(args):
                     print(e.args)
                     print("INDEX:", batch_idx)
                     print("SUBINDEX:", idx)
-                    raise e
+                    print("Failed to find keypoints/homography. Skipping.")
+                    continue
                 mask = torch.where(warped_target == 0)
                 masked_input = inp
                 masked_input[mask] = 0
