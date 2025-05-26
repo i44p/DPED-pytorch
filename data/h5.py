@@ -90,7 +90,7 @@ class H5Dataset(Dataset):
         x_center = None
         y_center = None
 
-        h, w, c = input_img.shape
+        h, w = input_img.shape
         corel = 0
         attempts = 0
         while attempts <= self.guess_limit and corel < self.correlation_threshold:
