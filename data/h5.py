@@ -71,9 +71,7 @@ class H5Dataset(Dataset):
         
         assert self.path.is_file()
 
-        with h5.File(self.path, 'r') as d:
-            input_dataset = d[f"input"]
-            self._len = input_dataset.shape[0]
+        self._len = self.input_dataset.shape[0]
 
     def __len__(self):
         return self._len
