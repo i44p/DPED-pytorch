@@ -96,8 +96,8 @@ class H5Dataset(Dataset):
         while attempts <= self.guess_limit and corel < self.correlation_threshold:
             attempts += 1
             
-            x_center = np.random.randint(self.pad, h - self.pad)
-            y_center = np.random.randint(self.pad, w - self.pad)
+            x_center = np.random.randint(self.pad, w - self.pad)
+            y_center = np.random.randint(self.pad, h - self.pad)
 
             input_patch = self._crop_gray(input_img, y_center, x_center)
             target_patch = self._crop_gray(target_img, y_center, x_center)
