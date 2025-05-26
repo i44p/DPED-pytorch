@@ -16,7 +16,7 @@ def parse_args():
                         help="")
     parser.add_argument('-s', '--seed', type=int, default=1337,
                         help="not implemented")
-    parser.add_argument('--num_workers', type=int, default=8,
+    parser.add_argument('--num_workers', type=int, default=4,
                         help="")
     parser.add_argument('--prefetch_factor', type=int, default=3,
                         help="")
