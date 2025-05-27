@@ -21,7 +21,7 @@ class LeakyNormConv2d(nn.Module):
         ]
 
         if batch_nn:
-            layers.append(nn.BatchNorm2d(out_channels))
+            layers.append(nn.InstanceNorm2d(out_channels))
 
         self.model = nn.Sequential(*layers)
 
