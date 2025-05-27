@@ -52,6 +52,7 @@ class H5Dataset(Dataset):
             correlation_threshold = 0.9,
             padding_px=10,
             guess_limit=2000,
+            num_patches_per_image=2,
             workers=4,
             *args, **kwargs
         ):
@@ -62,11 +63,22 @@ class H5Dataset(Dataset):
         self.padding_px = padding_px
         self.guess_limit = guess_limit
         self.pad = self.patch_size // 2 + self.padding_px
-        self.batch_size = batch_size
 
         self.h5_file = None
         self.input_dataset = None
         self.target_dataset = None
+
+        self.num_patches_per_image = num_patches_per_image
+        
+        assert num_patches_per_image <= batch_size, "num_patches_per_image must be smaller than batch_size (or a multiple of it)"
+
+        if self.num_patches_per_image != 1:
+            self.dataloader_batch_size, mod = divmod(batch_size, num_patches_per_image)
+            if mod != 0:
+                print(f"Warning: batch_size and num_patches_per_image are not aligned. Effective batch size: {self.dataloader_batch_size * self.num_patches_per_image}")
+        else:
+            self.dataloader_batch_size = batch_size
+
         self._init_dataset()
         
         assert self.path.is_file()
@@ -117,7 +129,7 @@ class H5Dataset(Dataset):
             corel = corel_statistic
         
         if attempts >= self.guess_limit:
-            return None
+            return None, None
 
         return (x_center, y_center)
 
@@ -128,18 +140,26 @@ class H5Dataset(Dataset):
         if np.all(input_img == 0):
             return None
 
-        x_center, y_center = self._find_patch_coords(
-            self._rgb2gray(input_img.astype(float) / 255),
-            self._rgb2gray(target_img.astype(float) / 255)
-        )
-        
-        input_patch = self._crop(input_img, y_center, x_center)
-        target_patch = self._crop(target_img, y_center, x_center)
+        patches = []
 
-        return (
-            einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
-            einops.rearrange(torch.from_numpy(target_patch.copy()), "h w c -> c h w")
-        )
+        for _ in range(self.num_patches_per_image):
+            x_center, y_center = self._find_patch_coords(
+                self._rgb2gray(input_img.astype(float) / 255),
+                self._rgb2gray(target_img.astype(float) / 255)
+            )
+
+            if not x_center:
+                continue
+            
+            input_patch = self._crop(input_img, y_center, x_center)
+            target_patch = self._crop(target_img, y_center, x_center)
+
+            patches.append((
+                einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
+                einops.rearrange(torch.from_numpy(target_patch.copy()), "h w c -> c h w")
+            ))
+
+        return patches
     
     def _crop(self, img, y_center, x_center):
         return img[
@@ -161,7 +181,7 @@ class H5Dataset(Dataset):
     def get_dataloader(self):
         dataloader = DataLoader(
             self,
-            batch_size = self.batch_size,
+            batch_size = self.dataloader_batch_size,
             shuffle=True,
             num_workers=self.workers,
             prefetch_factor=3,
@@ -171,15 +191,12 @@ class H5Dataset(Dataset):
         return dataloader
     
     @staticmethod
-    def collate_fn(batch):
-        filtered_batch = [sample for sample in batch if sample is not None]
-        
+    def collate_fn(items):
+        filtered_batch = [patch for patches in items for patch in patches if patch is not None]
+
         # all samples in the batch are None
         if not filtered_batch:
             raise RuntimeError(f"\nGot empty batch, can not proceed.\n")
-
-        if len(batch) != len(filtered_batch):
-            print(f"\nSome items in the batch are None. Effective batch size: {len(filtered_batch)}\n")
         
         inp, target = zip(*filtered_batch)
         
