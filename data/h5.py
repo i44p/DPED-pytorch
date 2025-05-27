@@ -185,7 +185,8 @@ class H5Dataset(Dataset):
             num_workers=self.workers,
             prefetch_factor=3,
             pin_memory=True,
-            collate_fn=self.collate_fn
+            collate_fn=self.collate_fn,
+            persistent_workers=True
         )
         return dataloader
     
