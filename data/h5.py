@@ -137,8 +137,8 @@ class H5Dataset(Dataset):
         input_img = self.input_dataset[idx]
         target_img = self.target_dataset[idx]
         
-        input_gray = self._rgb2gray(input_img.astype(float) / 255)
-        target_gray = self._rgb2gray(target_img.astype(float) / 255)
+        input_gray = self._rgb2gray(input_img)
+        target_gray = self._rgb2gray(target_img)
 
         patches = []
         for _ in range(self.num_patches_per_image):
