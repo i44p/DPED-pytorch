@@ -137,9 +137,6 @@ class H5Dataset(Dataset):
         input_img = self.input_dataset[idx]
         target_img = self.target_dataset[idx]
         
-        if np.all(input_img == 0):
-            return None
-        
         input_gray = self._rgb2gray(input_img.astype(float) / 255)
         target_gray = self._rgb2gray(target_img.astype(float) / 255)
 
