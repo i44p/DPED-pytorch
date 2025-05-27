@@ -114,7 +114,7 @@ class H5Dataset(Dataset):
             input_patch = self._crop_gray(input_img, y_center, x_center)
             target_patch = self._crop_gray(target_img, y_center, x_center)
 
-            if np.std(input_patch) == 0 or np.std(target_patch) == 0:
+            if np.std(input_patch) == 0:
                 continue
 
             corel_statistic, _ = scipy.stats.pearsonr(
@@ -139,13 +139,15 @@ class H5Dataset(Dataset):
         
         if np.all(input_img == 0):
             return None
+        
+        input_gray = self._rgb2gray(input_img.astype(float) / 255)
+        target_gray = self._rgb2gray(target_img.astype(float) / 255)
 
         patches = []
-
         for _ in range(self.num_patches_per_image):
             x_center, y_center = self._find_patch_coords(
-                self._rgb2gray(input_img.astype(float) / 255),
-                self._rgb2gray(target_img.astype(float) / 255)
+                input_gray,
+                target_gray
             )
 
             if not x_center:
