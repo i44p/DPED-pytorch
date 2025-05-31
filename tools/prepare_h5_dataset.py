@@ -37,6 +37,8 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
+from PIL import Image
+
 import os
 import torch
 torch.set_num_threads(os.cpu_count())
@@ -49,8 +51,6 @@ import io
 import traceback
 
 from tqdm import tqdm
-from PIL import Image, ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 from einops import rearrange
 
 import tools.intersection as intersection
