@@ -49,6 +49,12 @@ from einops import rearrange
 import tools.intersection as intersection
 
 
+def is_simple_image_file(fn: pathlib.Path):
+    exts = ['.jpg', '.png', '.jpeg']
+    
+    return fn.suffix.lower() in exts
+
+
 class CommonDataset(torch.utils.data.Dataset):
     def __init__(self, input_path: pathlib.Path, target_path: pathlib.Path):
         super().__init__()
@@ -58,27 +64,31 @@ class CommonDataset(torch.utils.data.Dataset):
         assert self.input_path.is_dir()
         assert self.target_path.is_dir()
 
-        self._len = len(list(self.target_path.iterdir()))
+        self.file_list = self._get_file_list()
+        self._len = len(self.file_list)
 
     def __len__(self):
         return self._len
+    
+    def _get_file_list(self):
+        file_list = [fn for fn in self.target_path.iterdir() if is_simple_image_file(fn)]
+        file_list.sort(key=lambda fn: int(fn.stem))
+        return file_list
 
-    def __getitem__(self, idx):
-        input_img = []
-        target_img = []
-        
+    def __getitem__(self, idx):        
         input_fp = self.fetch_filename(self.input_path, idx)
         target_fp = self.fetch_filename(self.target_path, idx)
 
         input_img = Image.open(input_fp)
         target_img = Image.open(target_fp)
 
-        return pil2torch(input_img), pil2torch(target_img), 
+        return pil2torch(input_img), pil2torch(target_img)
     
     def fetch_filename(self, path: pathlib.Path, idx):
-        pattern = f'{idx:06d}.*'
-        input_guesses = list(path.glob(pattern))
-        file_path = input_guesses[0]
+        # pattern = f'{idx:06d}.*'
+        # input_guesses = list(path.glob(pattern))
+        # file_path = input_guesses[0]
+        file_path = self.file_list[idx]
         return file_path
 
 
