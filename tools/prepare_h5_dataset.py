@@ -79,7 +79,7 @@ class CommonDataset(torch.utils.data.Dataset):
     
     def _get_file_list(self):
         file_list = [fn.name for fn in self.target_path.iterdir() if is_simple_image_file(fn)]
-        file_list.sort(key=lambda fn: int(fn.split('.')))
+        file_list.sort(key=lambda fn: int(fn.split('.')[0]))
         return file_list
 
     def __getitem__(self, idx):        
