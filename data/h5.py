@@ -103,9 +103,9 @@ class H5Dataset(Dataset):
         y_center = None
 
         h, w = input_img.shape
-        corel = 0
+        correl = 0
         attempts = 0
-        while attempts <= self.guess_limit and corel < self.correlation_threshold:
+        while attempts <= self.guess_limit and correl < self.correlation_threshold:
             attempts += 1
             
             x_center = np.random.randint(self.pad, w - self.pad)
@@ -117,16 +117,16 @@ class H5Dataset(Dataset):
             if np.any(input_patch == 0) or np.std(input_patch) == 0 or np.std(target_patch) == 0:
                 continue
 
-            corel_statistic, _ = scipy.stats.pearsonr(
+            correl_statistic, _ = scipy.stats.pearsonr(
                 input_patch,
                 target_patch,
                 axis=None
             )
 
-            if np.isnan(corel_statistic):
+            if np.isnan(correl_statistic):
                 continue
             
-            corel = corel_statistic
+            correl = correl_statistic
         
         if attempts >= self.guess_limit:
             return None, None
