@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('output_path', type=pathlib.Path,
                         help="Path to save h5 dataset.")
     
-    parser.add_argument('--device', type=str, default='cuda:0',
+    parser.add_argument('--device', type=str, default='cpu',
                         help="Device to run intersection model on.")
 
     parser.add_argument('-a', '--append', action='store_true',
