@@ -30,6 +30,8 @@ if __name__ == '__main__':
         **{k:v for k,v in vars(args).items() if v is not None}
     )
 
+    print(f"Extracting patches from {len(dataset)} images.")
+
     dataloader = dataset.get_dataloader()
 
     n = 0
