@@ -11,10 +11,11 @@ from einops import rearrange
 
 
 class Intersection:
-    def __init__(self, threshold=0.9):
+    def __init__(self, threshold=0.9, device='cpu'):
         self.processor = AutoImageProcessor.from_pretrained("magic-leap-community/superglue_outdoor")
-        self.model = AutoModel.from_pretrained("magic-leap-community/superglue_outdoor")
+        self.model = AutoModel.from_pretrained("magic-leap-community/superglue_outdoor").to(device)
         self.threshold = threshold
+        self.device = device
     
     @torch.inference_mode()
     def get_keypoints(
@@ -31,7 +32,8 @@ class Intersection:
         processor_inputs = self.processor(
                 images,
                 return_tensors="pt",
-                do_rescale=not isinstance(inputs, torch.Tensor)
+                do_rescale=not isinstance(inputs, torch.Tensor),
+                device=self.device
             )
         outputs = self.model(**processor_inputs)
 
@@ -73,7 +75,7 @@ class Intersection:
         target_torch = rearrange(
             torch.from_numpy(np.asarray(target_data).copy()).float() / 255,
             'h w c -> c h w'
-        ).unsqueeze(0)
+        ).unsqueeze(0).to(self.device)
         
         warped_target = self.warp_image(
             target_torch,
