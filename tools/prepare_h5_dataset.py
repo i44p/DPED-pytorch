@@ -11,6 +11,9 @@ def parse_args():
 
     parser.add_argument('output_path', type=pathlib.Path,
                         help="Path to save h5 dataset.")
+
+    parser.add_argument('-a', '--append', action='store_true',
+                        help="Push the photos to the back of the dataset instead of creating a new one.")
     
     parser.add_argument('-b', '--batch_size', type=int, default=1,
                         help="")
@@ -122,8 +125,9 @@ def main(args):
     c, h, w = dataset[0][0].shape
 
     slicer = intersection.Intersection()
-    
-    with h5py.File(args.output_path, "w", libver='latest') as dataset:
+
+    open_mode = "a" if args.append else "w"
+    with h5py.File(args.output_path, open_mode, libver='latest') as dataset:
 
         input_dataset = get_datasets(dataset, 'input', (args.batch_size, h, w, c))
         target_dataset = get_datasets(dataset, 'target', (args.batch_size, h, w, c))
