@@ -88,6 +88,9 @@ class CommonDataset(torch.utils.data.Dataset):
 
         input_img = Image.open(input_fp)
         target_img = Image.open(target_fp)
+        
+        input_img.load()
+        target_img.load()
 
         return pil2torch(input_img), pil2torch(target_img)
     
