@@ -46,6 +46,7 @@ import pathlib
 import rawpy
 import numpy as np
 import io
+import traceback
 
 from tqdm import tqdm
 from PIL import Image
@@ -159,10 +160,10 @@ def main(args):
                 try:
                     H, warped_target = slicer.intersect_single(torch2pil(inp), torch2pil(tgt))
                 except Exception as e:
-                    print(e.args)
                     print("INDEX:", batch_idx)
                     print("SUBINDEX:", idx)
                     print("Failed to find keypoints/homography. Skipping.")
+                    print(traceback.format_exc())
                     continue
                 mask = torch.where(warped_target == 0)
                 masked_input = inp
