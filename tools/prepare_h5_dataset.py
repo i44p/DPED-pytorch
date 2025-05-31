@@ -49,7 +49,8 @@ import io
 import traceback
 
 from tqdm import tqdm
-from PIL import Image
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 from einops import rearrange
 
 import tools.intersection as intersection
