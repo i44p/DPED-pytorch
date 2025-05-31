@@ -34,7 +34,9 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
+import os
 import torch
+torch.set_num_threads(os.cpu_count())
 import safetensors
 import h5py
 import pathlib
