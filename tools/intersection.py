@@ -32,9 +32,8 @@ class Intersection:
         processor_inputs = self.processor(
                 images,
                 return_tensors="pt",
-                do_rescale=not isinstance(inputs, torch.Tensor),
-                device=self.device
-            )
+                do_rescale=not isinstance(inputs, torch.Tensor)
+            ).to(self.device)
         outputs = self.model(**processor_inputs)
 
 
