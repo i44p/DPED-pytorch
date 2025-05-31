@@ -86,13 +86,13 @@ class CommonDataset(torch.utils.data.Dataset):
         input_fp = self.fetch_filename(self.input_path, idx)
         target_fp = self.fetch_filename(self.target_path, idx)
 
-        input_img = Image.open(input_fp)
-        target_img = Image.open(target_fp)
+        with Image.open(input_fp) as img:
+            input_tensor = pil2torch(img)
         
-        input_img.load()
-        target_img.load()
-
-        return pil2torch(input_img), pil2torch(target_img)
+        with Image.open(target_fp) as img:
+            target_tensor = pil2torch(img)
+        
+        return input_tensor, target_tensor
     
     def fetch_filename(self, path: pathlib.Path, idx):
         # pattern = f'{idx:06d}.*'
