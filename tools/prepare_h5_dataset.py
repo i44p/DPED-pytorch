@@ -11,6 +11,9 @@ def parse_args():
 
     parser.add_argument('output_path', type=pathlib.Path,
                         help="Path to save h5 dataset.")
+    
+    parser.add_argument('--device', type=str, default='cuda:0',
+                        help="Device to run intersection model on.")
 
     parser.add_argument('-a', '--append', action='store_true',
                         help="Push the photos to the back of the dataset instead of creating a new one.")
@@ -136,7 +139,7 @@ def main(args):
 
     c, h, w = dataset[0][0].shape
 
-    slicer = intersection.Intersection()
+    slicer = intersection.Intersection(args.device)
 
     open_mode = "a" if args.append else "w"
     with h5py.File(args.output_path, open_mode, libver='latest') as dataset:
@@ -166,7 +169,7 @@ def main(args):
                 masked_input[mask] = 0
                 warped_target_batch.append(warped_target)
                 masked_input_batch.append(masked_input)
-            warped_target_batch = torch.stack(warped_target_batch)
+            warped_target_batch = torch.stack(warped_target_batch).cpu()
             masked_input_batch = torch.stack(masked_input_batch)
 
             # kvadra: rgb = raw.postprocess(use_camera_wb=True, output_color=rawpy.ColorSpace(5))
