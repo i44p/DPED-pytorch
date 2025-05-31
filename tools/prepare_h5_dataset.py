@@ -43,7 +43,7 @@ from tqdm import tqdm
 from PIL import Image
 from einops import rearrange
 
-import intersection
+import tools.intersection as intersection
 
 
 class CommonDataset(torch.utils.data.Dataset):
