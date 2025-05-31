@@ -78,7 +78,7 @@ class CommonDataset(torch.utils.data.Dataset):
         return self._len
     
     def _get_file_list(self):
-        file_list = [fn for fn in self.target_path.iterdir() if is_simple_image_file(fn)]
+        file_list = [fn.name for fn in self.target_path.iterdir() if is_simple_image_file(fn)]
         file_list.sort(key=lambda fn: int(fn.stem))
         return file_list
 
@@ -98,7 +98,7 @@ class CommonDataset(torch.utils.data.Dataset):
         # pattern = f'{idx:06d}.*'
         # input_guesses = list(path.glob(pattern))
         # file_path = input_guesses[0]
-        file_path = self.file_list[idx]
+        file_path = path / self.file_list[idx]
         return file_path
 
 
