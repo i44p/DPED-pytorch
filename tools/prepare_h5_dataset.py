@@ -139,7 +139,7 @@ def main(args):
 
     c, h, w = dataset[0][0].shape
 
-    slicer = intersection.Intersection(args.device)
+    slicer = intersection.Intersection(device=args.device)
 
     open_mode = "a" if args.append else "w"
     with h5py.File(args.output_path, open_mode, libver='latest') as dataset:
