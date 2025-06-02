@@ -7,11 +7,12 @@ from PIL import Image
 from pathlib import Path
 
 class DPEDPatchDataset(Dataset):
-    def __init__(self, path: Path, input_label, target_label, batch_size):
+    def __init__(self, path: Path, input_label, target_label, batch_size, image_ext = '.jpg'):
         self.path = Path(path)
         self.input_label = input_label
         self.target_label = target_label
         self.batch_size = batch_size
+        self.image_ext = image_ext
         
         assert self.path.is_dir()
 
@@ -21,8 +22,8 @@ class DPEDPatchDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        input_patch = np.asarray(Image.open(self.path / self.input_label / f"{idx}.jpg"))
-        target_patch = np.asarray(Image.open(self.path / self.target_label / f"{idx}.jpg"))
+        input_patch = np.asarray(Image.open(self.path / self.input_label / f"{idx}{self.image_ext}"))
+        target_patch = np.asarray(Image.open(self.path / self.target_label / f"{idx}{self.image_ext}"))
 
         return (
             einops.rearrange(torch.from_numpy(input_patch.copy()), "h w c -> c h w"),
