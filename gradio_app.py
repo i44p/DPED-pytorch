@@ -64,6 +64,8 @@ def get_model_config_lists(config_path, model_path):
     model_path = Path(model_path)
     configs = list(config_path.glob("**/*.yaml"))
     models = list(model_path.glob("**/*.safetensors"))
+    configs.sort()
+    models.sort()
     return models, configs
 
 if __name__ == '__main__':
