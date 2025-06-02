@@ -24,12 +24,9 @@ class SSIMEvaluator(Evaluator):
         
         return metric
     
-    def eval_batch(self, model, batch) -> float:
+    def eval_batch(self, model, model_input, target) -> float:
         model.eval()
         model.requires_grad_(False)
-
-        model_input = model.preprocessor.encode(batch[0].to(self.device))
-        target = model.preprocessor.encode(batch[1].to(self.device))
 
         output = model.generator(model_input)
 

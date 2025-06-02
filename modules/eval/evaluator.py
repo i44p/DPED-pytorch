@@ -16,7 +16,7 @@ class Evaluator:
         raise NotImplementedError
     
     @abstractmethod
-    def eval_batch(self, model, batch) -> float:
+    def eval_batch(self, model, model_input, target) -> float:
         raise NotImplementedError
     
     @property
