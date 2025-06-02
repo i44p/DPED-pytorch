@@ -7,10 +7,11 @@ from torchvision.models.feature_extraction import create_feature_extractor
 from safetensors.torch import load_model
 
 from class_utils import import_class
+from modules.eval.evaluator import Evaluator
 
 
 class DPEDModel(nn.Module):
-    def __init__(self, config, device):
+    def __init__(self, config, device, evaluators: list[Evaluator]):
         super().__init__()
 
         self.config = config
@@ -19,6 +20,9 @@ class DPEDModel(nn.Module):
         self.generator, self.discriminator = self._prepare_models()
         self.optimizer_generator, self.optimizer_discriminator = self._prepare_optimizers()
         self.criterion = self._prepare_criterion()
+        
+        self.evaluators = evaluators
+        self.report_train_metrics = self.config.evaluation.get('report_train_metrics', False)
 
         self.cross_entropy = nn.CrossEntropyLoss(reduction='none')
         self.grayscale = Grayscale()
@@ -77,6 +81,10 @@ class DPEDModel(nn.Module):
         
         losses['discrim_loss'] = discriminator_loss.item()
         losses['generator_loss'] = generator_loss.item()
+
+        if self.report_train_metrics:
+            for evaluator in self.evaluators:
+                losses[evaluator.name] = evaluator.eval_batch(self, model_input, target)
 
         for k, loss in other.items():
             losses[k] = loss.mean().item()

@@ -14,8 +14,6 @@ class Trainer:
 
         self.config = config
 
-        self.model = import_class(self.config.model.module)(self.config, self.device)
-
         resume_path = self.config.trainer.get('resume_path')
         if resume_path:
             load_model(self.model, resume_path, device=self.device)
@@ -35,6 +33,8 @@ class Trainer:
         self.dataloader = self.prepare_dataloader()
 
         self.evaluators = self.prepare_evaluators()
+
+        self.model = import_class(self.config.model.module)(self.config, self.device, self.evaluators)
 
         self.use_wandb = self.config.evaluation.get('use_wandb', False)
         if self.use_wandb:

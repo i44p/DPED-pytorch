@@ -39,24 +39,27 @@ hyperparameters:
   batch_size: 5
 
 dataset:
-  module: data.patches.DPEDPatchDataset
+  module: data.h5.H5Dataset
   args:
-    path: dataset/dped/blackberry/training_data
+    path: dataset.h5
     input_label: blackberry
     target_label: canon
   
 evaluation:
+  report_train_metrics: true
   frequency_steps: 10
   frequency_epochs: 1
   batch_size: 5
   metrics:
     - modules.eval.psnr.PSNREvaluator
+    #- modules.eval.ssim.SSIMEvaluator
+    #- modules.eval.ms-ssim.MSSSIMEvaluator
   dataset:
     module: data.patches.DPEDPatchDataset
     args:
       path: dataset/test
       input_label: blackberry
       target_label: canon
-  use_wandb: true
+  use_wandb: false
   wandb_project: "test"
   
