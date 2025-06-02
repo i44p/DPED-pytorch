@@ -36,7 +36,7 @@ class DPED:
             self.processor = import_class(self.config.model.preprocessor.module)(
                 **self.config.model.preprocessor.args
             )
-            self.model = import_class(self.config.model.module)(self.config, self.device)
+            self.model = import_class(self.config.model.module)(self.config, self.device, [])
             self.model.eval()
             self.model.requires_grad_(False)
             self.loaded_config = config_path
