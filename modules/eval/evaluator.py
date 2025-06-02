@@ -15,6 +15,10 @@ class Evaluator:
     def eval(self, model) -> float:
         raise NotImplementedError
     
+    @abstractmethod
+    def eval_batch(self, model, batch) -> float:
+        raise NotImplementedError
+    
     @property
     @abstractmethod
     def name(self) -> str:

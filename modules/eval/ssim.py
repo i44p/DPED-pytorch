@@ -23,6 +23,19 @@ class SSIMEvaluator(Evaluator):
         metric = ssim_accumulator / self.dataloader.batch_size / len(self.dataloader)
         
         return metric
+    
+    def eval_batch(self, model, batch) -> float:
+        model.eval()
+        model.requires_grad_(False)
+
+        model_input = model.preprocessor.encode(batch[0].to(self.device))
+        target = model.preprocessor.encode(batch[1].to(self.device))
+
+        output = model.generator(model_input)
+
+        metric = torch.mean(ssim(output, target, data_range=1, size_average=False))
+
+        return metric
 
     @property
     def name(self):

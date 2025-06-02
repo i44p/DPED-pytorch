@@ -25,6 +25,20 @@ class PSNREvaluator(Evaluator):
         psnr = 10 * torch.log10(1.0 / mse)
         
         return psnr
+    
+    def eval_batch(self, model, batch) -> float:
+        model.eval()
+        model.requires_grad_(False)
+
+        model_input = model.preprocessor.encode(batch[0].to(self.device))
+        target = model.preprocessor.encode(batch[1].to(self.device))
+
+        output = model.generator(model_input)
+        
+        mse = ((output - target) ** 2).mean()
+        psnr = 10 * torch.log10(1.0 / mse)
+        
+        return psnr
 
     @property
     def name(self):
