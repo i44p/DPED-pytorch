@@ -68,7 +68,10 @@ class DPED:
         with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
             out_img = self.model(img.to(self.device))
 
-        return self.processor.pil(out_img)
+        if not isinstance(img, torch.Tensor):
+            return self.processor.pil(out_img)
+
+        return self.processor.decode(out_img)
     
 
 def get_model_config_lists(config_path, model_path):
