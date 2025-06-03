@@ -52,6 +52,9 @@ class DPED:
 
             for k in model_state_dict.keys():
                 model_state_dict[k] = state_dict[k]
+
+            if self._use_autocast:
+                self.model.to(torch.float16)
     
     def set_autocast_mode(self, mode):
         self._use_autocast = bool(mode)
