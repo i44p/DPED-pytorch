@@ -64,6 +64,8 @@ class DPED:
     def infer(self, img):
         if not isinstance(img, torch.Tensor):
             in_img = self.processor.from_pil(img)
+        else:
+            in_img = img
 
         with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
             out_img = self.model(in_img.to(self.device))
