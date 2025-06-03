@@ -13,7 +13,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
 import gradio as gr
-from safetensors.torch import load_model
+from safetensors.torch import load_file
 from omegaconf import OmegaConf
 
 from class_utils import import_class
@@ -36,15 +36,22 @@ class DPED:
             self.processor = import_class(self.config.model.preprocessor.module)(
                 **self.config.model.preprocessor.args
             )
-            self.model = import_class(self.config.model.module)(self.config, self.device, [])
+            self.model = import_class(self.config.model.generator.module)()
             self.model.eval()
             self.model.requires_grad_(False)
             self.loaded_config = config_path
         
     def load_model(self, model_path):
         if self.loaded_model != model_path:
-            load_model(self.model, model_path)
+            state_dict = load_file(model_path, device=self.device)
             self.loaded_model = model_path
+
+            state_dict = {k.removeprefix('generator.') :v for k,v in state_dict.items() if k.startswith('generator.')}
+
+            model_state_dict = self.model.state_dict()
+
+            for k in model_state_dict.keys():
+                model_state_dict[k] = state_dict[k]
     
     def set_autocast_mode(self, mode):
         self._use_autocast = bool(mode)
@@ -54,7 +61,7 @@ class DPED:
         img = self.processor.from_pil(img)
 
         with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
-            out_img = self.model.generator(img.to(self.device))
+            out_img = self.model(img.to(self.device))
 
         return self.processor.pil(out_img)
     
