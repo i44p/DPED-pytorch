@@ -1,11 +1,12 @@
 import argparse
+import pathlib
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("model")
 parser.add_argument("config")
-parser.add_argument("input_image")
-parser.add_argument("output_image")
+parser.add_argument("input_path", type=pathlib.Path)
+parser.add_argument("output_path", type=pathlib.Path)
 parser.add_argument("-p", "--patch_size", default=256, type=int)
 parser.add_argument("-s" ,"--stride", default=64, type=int)
 parser.add_argument("-b" ,"--batch_size", default=64, type=int)
@@ -17,6 +18,9 @@ import torch
 from PIL import Image
 from itertools import batched
 from tqdm import tqdm
+
+
+IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 
 
 @torch.inference_mode()
@@ -74,4 +78,12 @@ def main(args, model, input_image, output_image, patch_size, stride, batch_size)
 
 if __name__ == '__main__':
     model = DPED(args.config, args.model)
-    main(args, model, args.input_image, args.output_image, args.patch_size, args.stride, args.batch_size)
+    if args.input_path.is_file() and (not args.output_path.exists() or args.output_path.is_file()):
+        main(args, model, args.input_path, args.output_path, args.patch_size, args.stride, args.batch_size)
+
+    elif args.input_path.is_dir() and args.output_path.is_dir():
+        for file in args.input_path.glob('*'):
+            if file.suffix.lower() in IMAGE_EXTENSIONS:
+                main(args, model, str(file), str(args.output_path / (file.stem + '.png')), args.patch_size, args.stride, args.batch_size)
+    else:
+        print("Couldn't parse input or output path.")
