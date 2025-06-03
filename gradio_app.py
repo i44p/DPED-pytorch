@@ -13,7 +13,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
 import gradio as gr
-from safetensors.torch import load_file
+from safetensors.torch import safe_open
 from omegaconf import OmegaConf
 
 from class_utils import import_class
@@ -36,27 +36,26 @@ class DPED:
             self.processor = import_class(self.config.model.preprocessor.module)(
                 **self.config.model.preprocessor.args
             )
-            self.model = import_class(self.config.model.generator.module)()
-            self.model.eval()
-            self.model.requires_grad_(False)
+            self.model = import_class(self.config.model.generator.module)().to(self.device)
             self.loaded_config = config_path
         
     def load_model(self, model_path):
         if self.loaded_model != model_path:
-            state_dict = load_file(model_path, device=self.device)
             self.loaded_model = model_path
 
-            state_dict = {k.removeprefix('generator.') :v for k,v in state_dict.items() if k.startswith('generator.')}
-
-            model_state_dict = self.model.state_dict()
-
-            for k in model_state_dict.keys():
-                model_state_dict[k] = state_dict[k]
-
-            if self._use_autocast:
-                self.model.to(self.device, dtype=torch.float16)
+            with safe_open(model_path, framework="pt") as f:
+                generator_keys = [
+                    k for k in f.keys()
+                    if k.startswith('generator.') and not ('running_mean' in k or 'running_var' in k)
+                ]
             
-            self.model.to(self.device)
+            state_dict = {}
+            with safe_open(model_path, framework="pt", device=self.device) as f:
+                for k in generator_keys:
+                    state_dict[k.removeprefix('generator.')] = f.get_tensor(k)
+            
+            self.model.load_state_dict(state_dict, strict=False)
+            self.loaded_model = model_path
     
     def set_autocast_mode(self, mode):
         self._use_autocast = bool(mode)
