@@ -1,14 +1,5 @@
 import argparse
 
-import torch
-from safetensors.torch import load_model
-from PIL import Image
-
-from omegaconf import OmegaConf
-
-from modules.dped import DPEDModel
-from modules.preprocess import DPEDProcessor
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument("model")
@@ -18,21 +9,16 @@ parser.add_argument("output_image")
 
 args = parser.parse_args()
 
-config = OmegaConf.load(args.config)
-
-processor = DPEDProcessor(**config.model.preprocessor.args)
-
-model = DPEDModel(config, 'cpu')
-load_model(model, args.model)
+from gradio_app import DPED
+import torch
+from PIL import Image
 
 
 @torch.inference_mode()
-def infer():
-    img = processor.from_pil(Image.open(args.input_image))
-
-    out_img = model.generator(img).clamp(0, 1)
-
-    processor.pil(out_img).save(args.output_image)
+def main(model, input_image, output_image):
+    with Image.open(input_image) as i:
+        model.infer(i).save(output_image)
 
 if __name__ == '__main__':
-    infer()
+    model = DPED(args.config, args.model)
+    main(model, args.input_image, args.output_image)
