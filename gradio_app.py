@@ -63,10 +63,10 @@ class DPED:
     @torch.inference_mode()
     def infer(self, img):
         if not isinstance(img, torch.Tensor):
-            img = self.processor.from_pil(img)
+            in_img = self.processor.from_pil(img)
 
         with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
-            out_img = self.model(img.to(self.device))
+            out_img = self.model(in_img.to(self.device))
 
         if not isinstance(img, torch.Tensor):
             return self.processor.pil(out_img)
