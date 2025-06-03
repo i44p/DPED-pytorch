@@ -54,7 +54,9 @@ class DPED:
                 model_state_dict[k] = state_dict[k]
 
             if self._use_autocast:
-                self.model.to(torch.float16)
+                self.model.to(self.device, dtype=torch.float16)
+            
+            self.model.to(self.device)
     
     def set_autocast_mode(self, mode):
         self._use_autocast = bool(mode)
