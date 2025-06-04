@@ -32,8 +32,8 @@ class H5Dataset(Dataset):
         input_pil = Image.fromarray(input_img.copy())
         target_pil = Image.fromarray(target_img.copy())
 
-        input_pil.save(self.save_to / f'{idx}_input.png')
-        target_pil.save(self.save_to / f'{idx}_target.png')
+        input_pil.save(self.save_to / 'input' / f'{idx}.png')
+        target_pil.save(self.save_to / 'target' / f'{idx}.png')
         
         return elapsed
 
