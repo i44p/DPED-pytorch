@@ -17,6 +17,10 @@ class DPEDWrapper:
         self.loaded_model = ""
         self.model = None
         self.processor = None
+
+        if self.device == 'cpu':  # some cpus don't support fp16 compute
+            fp16_autocast = False
+
         self.set_fp16_autocast_mode(fp16_autocast)
 
         self.load_config(config_path)

@@ -13,11 +13,16 @@ parser.add_argument("-b" ,"--batch_size", default=64, type=int)
 
 args = parser.parse_args()
 
-from gradio_app import DPED
+from modules.inference import DPEDWrapper
 import torch
+import os
 from PIL import Image
 from itertools import batched
 from tqdm import tqdm
+
+torch.set_num_threads(os.cpu_count())
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
 
 
 IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
@@ -77,7 +82,7 @@ def main(args, model, input_image, output_image, patch_size, stride, batch_size)
     
 
 if __name__ == '__main__':
-    model = DPED(args.config, args.model)
+    model = DPEDWrapper(args.config, args.model)
     if args.input_path.is_file() and (not args.output_path.exists() or args.output_path.is_file()):
         main(args, model, args.input_path, args.output_path, args.patch_size, args.stride, args.batch_size)
 
