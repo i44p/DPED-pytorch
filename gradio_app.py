@@ -12,71 +12,12 @@ torch.backends.cudnn.benchmark = True
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
+from modules.inference import DPEDWrapper
+
 import gradio as gr
-from safetensors.torch import safe_open
-from omegaconf import OmegaConf
-
-from class_utils import import_class
-
-
-class DPED:
-    def __init__(self, config_path, model_path) -> None:
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-        self.loaded_config = ""
-        self.loaded_model = ""
-        self.set_autocast_mode(True)
-
-        self.load_config(config_path)
-        self.load_model(model_path)
-    
-    def load_config(self, config_path):
-        if self.loaded_config != config_path:
-            self.config = OmegaConf.load(config_path)
-            self.processor = import_class(self.config.model.preprocessor.module)(
-                **self.config.model.preprocessor.args
-            )
-            self.model = import_class(self.config.model.generator.module)().to(self.device)
-            self.loaded_config = config_path
-        
-    def load_model(self, model_path):
-        if self.loaded_model != model_path:
-            self.loaded_model = model_path
-
-            with safe_open(model_path, framework="pt") as f:
-                generator_keys = [
-                    k for k in f.keys()
-                    if k.startswith('generator.') and not ('running_mean' in k or 'running_var' in k)
-                ]
-            
-            state_dict = {}
-            with safe_open(model_path, framework="pt", device=self.device) as f:
-                for k in generator_keys:
-                    state_dict[k.removeprefix('generator.')] = f.get_tensor(k)
-            
-            self.model.load_state_dict(state_dict, strict=False)
-            self.loaded_model = model_path
-    
-    def set_autocast_mode(self, mode):
-        self._use_autocast = bool(mode)
-    
-    @torch.inference_mode()
-    def infer(self, img):
-        if not isinstance(img, torch.Tensor):
-            in_img = self.processor.from_pil(img)
-        else:
-            in_img = img
-
-        with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self._use_autocast):
-            out_img = self.model(in_img.to(self.device))
-
-        if not isinstance(img, torch.Tensor):
-            return self.processor.pil(out_img)
-
-        return self.processor.decode(out_img)
     
 
-def get_model_config_lists(config_path, model_path):
+def get_model_config_lists(model_path, config_path):
     config_path = Path(config_path)
     model_path = Path(model_path)
     configs = list(config_path.glob("**/*.yaml"))
@@ -93,11 +34,11 @@ if __name__ == '__main__':
     parser.add_argument("configs")
 
     args = parser.parse_args()
-    models, configs = get_model_config_lists(args.configs, args.models)
+    models, configs = get_model_config_lists(args.models, args.configs)
 
     model_path, config_path = models[0], configs[0]
     
-    dped_model = DPED(config_path, model_path)
+    dped_model = DPEDWrapper(config_path, model_path)
 
     with gr.Blocks() as app:
 
@@ -110,6 +51,7 @@ if __name__ == '__main__':
             2. Выберите соответствующий файл конфигурации, то есть для модели выше это будет что-то вроде kvadra-1.yaml
             3. Загрузите изображение, сделанное на планшет KVADRA_T.
             """)
+            
 
             with gr.Column():
                 model_dropdown = gr.Dropdown(models, label="Model", value=models[0], interactive=True)
@@ -119,7 +61,7 @@ if __name__ == '__main__':
         
         model_dropdown.change(dped_model.load_model, inputs=model_dropdown)
         config_dropdown.change(dped_model.load_config, inputs=config_dropdown)
-        use_autocast.change(dped_model.set_autocast_mode, inputs=use_autocast)
+        use_autocast.change(dped_model.set_fp16_autocast_mode, inputs=use_autocast)
 
         with gr.Row(equal_height=True):
             input_image = gr.Image(label="Input")
